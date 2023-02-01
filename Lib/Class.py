@@ -1,29 +1,37 @@
-# Python program to determine which
-# button was pressed in tkinter
-
-# Import the library tkinter
+import time
+import os
+import tkinter as tk
+from tkinter import ttk
 from tkinter import *
+import tkinter
+from tkinter.ttk import Notebook, Style
+#import pyvisa
+import cv2 as cv
+from PIL import ImageTk
+from PIL import Image
+import json
+import urllib.request
+from threading import Timer
+import urllib.request
+import logging
+from tkinter import messagebox
+import customtkinter
 
-# Create a GUI app
-app = Tk()
+with open('Parttest.json', 'r') as json_Part:
+    json_API = json.loads(json_Part.read())
 
+PartNumber_R = json_API[0]["Rigth"][0]["PartNumber"]
+BatchNumber_R = json_API[0]["Rigth"][0]["BatchNumber"]
+PartName_R = json_API[0]["Rigth"][0]["PartName"]
+CustomerPartNumber_R = json_API[0]["Rigth"][0]["CustomerPartNumber"]
+MachineName_R = json_API[0]["Rigth"][0]["MachineName"]
+MoldId_R = json_API[0]["Rigth"][0]["MoldId"]
+Packing_R = json_API[0]["Rigth"][0]["PackingStd"]
 
-# Create a function with one parameter, i.e., of
-# the text you want to show when button is clicked
-def which_button():
-    print(button_press)
-
-
-# Creating and displaying of button b1
-b1 = Button(app, text="Apple",
-            command=lambda m="It is an apple": which_button(m))
-
-b1.grid(padx=10, pady=10)
-
-# Creating and displaying of button b2
-b2 = Button(app, text="Banana",
-            command=lambda :which_button)
-b2.grid(padx=10, pady=10)
-
-# Make the infinite loop for displaying the app
-app.mainloop()
+PartNumber_L = json_API[1]["Left"][0]["PartNumber"]
+BatchNumber_L = json_API[0]["Left"][0]["BatchNumber"]
+PartName_L = json_API[0]["Left"][0]["PartName"]
+CustomerPartNumber_L = json_API[0]["Left"][0]["CustomerPartNumber"]
+MachineName_L = json_API[0]["Left"][0]["MachineName"]
+MoldId_L = json_API[0]["Left"][0]["MoldId"]
+Packing_L = json_API[0]["Left"][0]["PackingStd"]
