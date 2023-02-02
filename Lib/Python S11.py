@@ -119,7 +119,6 @@ class App(customtkinter.CTk):
         self.CouterNG_Left = 0
         self.CouterOK_Rigth = 0
         self.CouterNG_Rigth = 0
-        self.CouterPoint_Rigth = 0
         self.Image_logo = GetImage()
 
         self.ReadFile()
@@ -127,7 +126,6 @@ class App(customtkinter.CTk):
         self.TCP()
         #self.Reorder()
         self.AddMaster()
-
         customtkinter.CTkLabel(master=self, text="Vision Inspection", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=50, weight="bold"), corner_radius=10).place(x=140, y=10)
         customtkinter.CTkLabel(master=self, text="v 1.0.0", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=15, weight="bold"), corner_radius=10).place(x=490, y=10)
         self.ImageRealTime_1 = tk.Label(self, bg="White")
@@ -144,6 +142,7 @@ class App(customtkinter.CTk):
 
 
         customtkinter.CTkButton(master=self, text="Reorder", text_color="#00B400", hover_color="#B4F0B4", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=("#353535"),command=lambda :[self.ReadFile(),self.View()]).place(x=1570, y=10)
+
     def ReadFile(self):
         try:
             self.CouterPoint_Left = 0
@@ -154,6 +153,15 @@ class App(customtkinter.CTk):
                         self.CouterPoint_Left += 1
         except FileNotFoundError as ex:
             self.CouterPoint_Left = 0
+        try:
+            self.CouterPoint_Rigth = 0
+            self.dir_path = r"" + GetAPI().PartNumber_R + "\Master"
+            for path in os.listdir(self.dir_path):
+                if os.path.isfile(os.path.join(self.dir_path, path)):
+                    if path.endswith('.bmp'):
+                        self.CouterPoint_Rigth += 1
+        except FileNotFoundError as ex:
+            self.CouterPoint_Rigth = 0
 
     def View(self):
         self.API = GetAPI()
@@ -191,13 +199,14 @@ class App(customtkinter.CTk):
         customtkinter.CTkLabel(master=self, text="OK : " + str(self.CouterOK_Left), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=52, weight="bold"), corner_radius=10, fg_color=("#00B400")).place(x=1590, y=100)
         customtkinter.CTkLabel(master=self, text="Packing :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), corner_radius=10).place(x=1360, y=100)
         customtkinter.CTkLabel(master=self, text=str(self.CouterPacking_Left) + "/" + str(self.API.Packing_R), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), corner_radius=10, fg_color=("#00B400")).place(x=1490, y=100)
+        #,command=lambda :self.ViewNG_RealTime()
         for Point_Left in range(self.CouterPoint_Left):
             if Point_Left <= 4:
-                LablePoint_Left = customtkinter.CTkLabel(master=self, text="Point:"+str(Point_Left+1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10,fg_color=("#A9A9A9")).place(x=190*(Point_Left), y=850)
+                self.LablePoint_Left = customtkinter.CTkLabel(master=self, text="Point:"+str(Point_Left+1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10,fg_color=("#A9A9A9")).place(x=190*(Point_Left), y=850)
             elif Point_Left <= 9:
-                LablePoint_Left = customtkinter.CTkLabel(master=self, text="Point:"+str(Point_Left+1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10,fg_color=("#A9A9A9")).place(x=190*(Point_Left-5), y=930)
+                self.LablePoint_Left = customtkinter.CTkLabel(master=self, text="Point:"+str(Point_Left+1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10,fg_color=("#A9A9A9")).place(x=190*(Point_Left-5), y=930)
             elif Point_Left <= 15:
-                LablePoint_Left = customtkinter.CTkLabel(master=self, text="Point:"+str(Point_Left+1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10,fg_color=("#A9A9A9")).place(x=190*(Point_Left-10), y=1010)
+                self.LablePoint_Left = customtkinter.CTkLabel(master=self, text="Point:"+str(Point_Left+1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10,fg_color=("#A9A9A9")).place(x=190 * (Point_Left - 10), y=930)
         for Point_Rigth in range(self.CouterPoint_Rigth):
             if Point_Rigth <= 4:
                 LablePoint_Rigth = customtkinter.CTkLabel(master=self, text="Point:" + str(Point_Rigth + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=("#A9A9A9")).place(x=960+(Point_Rigth*190), y=850)
@@ -223,6 +232,16 @@ class App(customtkinter.CTk):
         customtkinter.CTkButton(ViewNG, text="Commit", text_color="#FF3939", hover_color="#FF9797", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=35, weight="bold"), corner_radius=10, fg_color=("#353535")).place(x=35, y=70)
         ViewNG.configure(background='#232323')
         ViewNG.geometry('220x120')
+    """""""""
+    def ViewNG_RealTime(self):
+        if self.LablePoint_Left.winfo_pointerx() < 155:
+            print("Point1")
+        if self.LablePoint_Left.winfo_pointerx() > 155 and self.LablePoint_Left.winfo_pointerx() > 155:
+            print("Point2")
+    print(self.LablePoint_Left.winfo_pointerx())
+    """""""""
+
+
     def on_enter(self, event):
         self.image_logo.configure(image=self.Image_logo.ExitImage)
 
