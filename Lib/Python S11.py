@@ -119,19 +119,22 @@ class App(customtkinter.CTk):
         self.CouterNG_Left = 0
         self.CouterOK_Rigth = 0
         self.CouterNG_Rigth = 0
+        self.Run_Left = False
+        self.Run_Rigth = False
         self.Image_logo = GetImage()
 
         self.ReadFile()
+        self.ReadFileScore()
         self.View()
         self.TCP()
         #self.Reorder()
         self.AddMaster()
         customtkinter.CTkLabel(master=self, text="Vision Inspection", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=50, weight="bold"), corner_radius=10).place(x=140, y=10)
         customtkinter.CTkLabel(master=self, text="v 1.0.0", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=15, weight="bold"), corner_radius=10).place(x=490, y=10)
-        self.ImageRealTime_1 = tk.Label(self, bg="White")
-        self.ImageRealTime_1.place(x=0, y=280)
-        self.ImageRealTime_2 = tk.Label(self, bg="White")
-        self.ImageRealTime_2.place(x=960, y=280)
+        self.ImageReal_Left = tk.Button(self, bg="White",command=lambda :self.ViewImagePart(self.API.PartNumber_L))
+        self.ImageReal_Left.place(x=0, y=280)
+        self.ImageReal_Rigth = tk.Button(self, bg="White",command=lambda :self.ViewImagePart(self.API.PartNumber_R))
+        self.ImageReal_Rigth.place(x=960, y=280)
         self.image_logo = tk.Button(self, bg="#232323",image=self.Image_logo.BKFImage,command=self.Destory,bd=0)
         self.image_logo.place(x=1755, y=10)
         self.image_logo.bind("<Enter>", self.on_enter)
@@ -139,10 +142,12 @@ class App(customtkinter.CTk):
         self.Camera()
         #self.scaling_optionemenu = customtkinter.CTkOptionMenu(master=self, values=["80%", "90%", "100%", "110%", "120%"], command=self.change_scaling_event)
         #self.scaling_optionemenu.place(x=1000, y=80)
-
-
-        customtkinter.CTkButton(master=self, text="Reorder", text_color="#00B400", hover_color="#B4F0B4", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=("#353535"),command=lambda :[self.ReadFile(),self.View()]).place(x=1570, y=10)
-
+        customtkinter.CTkButton(master=self, text="Reorder", text_color="#00B400", hover_color="#B4F0B4", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=("#353535"),command=lambda :[self.ReadFile(),self.ReadFileScore(),self.View()]).place(x=1570, y=10)
+    def ViewImagePart(self,Partnumber):
+        View = r"Image_Partnumber/"+Partnumber+".png"
+        img = cv.imread(View, cv.COLOR_BGR2RGB)
+        cv.imshow(Partnumber,img)
+        cv.waitKey(0)
     def ReadFile(self):
         try:
             self.CouterPoint_Left = 0
@@ -163,7 +168,49 @@ class App(customtkinter.CTk):
         except FileNotFoundError as ex:
             self.CouterPoint_Rigth = 0
 
+    def ReadFileScore(self):
+        try:
+            with open(GetAPI().PartNumber_L+'/'+ GetAPI().PartNumber_L + '.json', 'r') as json_file:
+                Master_Left = json.loads(json_file.read())
+            if self.CouterPoint_Left != 0:
+                self.Point_Left_L = []
+                self.Point_Top_L = []
+                self.Point_Right_L = []
+                self.Point_Bottom_L = []
+                self.Point_Score_L = []
+                self.Point_Mode_L = []
+                for L in range(self.CouterPoint_Left):
+                    self.Point_Mode_L.append(Master_Left[L]["Point" + str(L + 1)][0]["Mode"])
+                    self.Point_Left_L.append(Master_Left[L]["Point" + str(L + 1)][0]["Left"])
+                    self.Point_Top_L.append(Master_Left[L]["Point" + str(L + 1)][0]["Top"])
+                    self.Point_Right_L.append(Master_Left[L]["Point" + str(L + 1)][0]["Right"])
+                    self.Point_Bottom_L.append(Master_Left[L]["Point" + str(L + 1)][0]["Bottom"])
+                    self.Point_Score_L.append(Master_Left[L]["Point" + str(L + 1)][0]["Score"])
+        except:
+            pass
+
+        try:
+            with open(GetAPI().PartNumber_R + '/' + GetAPI().PartNumber_R + '.json', 'r') as json_file:
+                Master_Rigth = json.loads(json_file.read())
+            if self.CouterPoint_Rigth != 0:
+                self.Point_Left_R = []
+                self.Point_Top_R = []
+                self.Point_Right_R = []
+                self.Point_Bottom_R = []
+                self.Point_Score_R = []
+                self.Point_Mode_R = []
+                for R in range(self.CouterPoint_Rigth):
+                    self.Point_Mode_R.append(Master_Rigth[R]["Point" + str(R + 1)][0]["Mode"])
+                    self.Point_Left_R.append(Master_Rigth[R]["Point" + str(R + 1)][0]["Left"])
+                    self.Point_Top_R.append(Master_Rigth[R]["Point" + str(R + 1)][0]["Top"])
+                    self.Point_Right_R.append(Master_Rigth[R]["Point" + str(R + 1)][0]["Right"])
+                    self.Point_Bottom_R.append(Master_Rigth[R]["Point" + str(R + 1)][0]["Bottom"])
+                    self.Point_Score_R.append(Master_Rigth[R]["Point" + str(R + 1)][0]["Score"])
+        except:
+            pass
+
     def View(self):
+
         self.API = GetAPI()
         if self.API.Sever == "Connected":
             color = "#00B400"
@@ -206,7 +253,7 @@ class App(customtkinter.CTk):
             elif Point_Left <= 9:
                 self.LablePoint_Left = customtkinter.CTkLabel(master=self, text="Point:"+str(Point_Left+1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10,fg_color=("#A9A9A9")).place(x=190*(Point_Left-5), y=930)
             elif Point_Left <= 15:
-                self.LablePoint_Left = customtkinter.CTkLabel(master=self, text="Point:"+str(Point_Left+1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10,fg_color=("#A9A9A9")).place(x=190 * (Point_Left - 10), y=930)
+                self.LablePoint_Left = customtkinter.CTkLabel(master=self, text="Point:"+str(Point_Left+1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10,fg_color=("#A9A9A9")).place(x=190 * (Point_Left - 10), y=1010)
         for Point_Rigth in range(self.CouterPoint_Rigth):
             if Point_Rigth <= 4:
                 LablePoint_Rigth = customtkinter.CTkLabel(master=self, text="Point:" + str(Point_Rigth + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=("#A9A9A9")).place(x=960+(Point_Rigth*190), y=850)
@@ -215,6 +262,10 @@ class App(customtkinter.CTk):
             elif Point_Rigth <= 15:
                 LablePoint_Rigth = customtkinter.CTkLabel(master=self, text="Point:" + str(Point_Rigth + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=("#A9A9A9")).place(x=960+((Point_Rigth-10)*190), y=1010)
         #customtkinter.CTkLabel(master=self, text="Point:1", text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=("red")).place(x=0, y=850)
+
+        customtkinter.CTkButton(master=self, text="Test Left", text_color="#FFFFFF", hover_color="#C80000", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=20, weight="bold"), corner_radius=10, fg_color=("#FF0000"), command=lambda:self.Processing(1)).place(x=1000, y=20)
+        customtkinter.CTkButton(master=self, text="Test Rigth", text_color="#FFFFFF", hover_color="#C80000", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=20, weight="bold"), corner_radius=10, fg_color=("#FF0000"), command=lambda:self.Processing(2)).place(x=1150, y=20)
+
     def ViewNG(self,Side):
         ViewNG = Toplevel(self)
         ViewNG.title(Side)
@@ -241,6 +292,200 @@ class App(customtkinter.CTk):
     print(self.LablePoint_Left.winfo_pointerx())
     """""""""
 
+    def Processing(self,x):
+        if x == 1:
+            if self.CouterPoint_Left != 0:
+                self.Run_Left = True
+                Partnumber = self.API.PartNumber_L
+                Imagesave = Image.fromarray(self.Camera_Left)
+                Imagesave.save("Current_Left.png")
+                self.Main_L()
+                self.ViewImage_Snap(Partnumber)
+        elif x == 2:
+            if self.CouterPoint_Rigth != 0:
+                self.Run_Rigth = True
+                Partnumber = self.API.PartNumber_R
+                Imagesave = Image.fromarray(self.Camera_Rigth)
+                Imagesave.save("Current_Rigth.png")
+                self.Main_R()
+                self.ViewImage_Snap(Partnumber)
+
+
+
+    def Process_Outline(self, imgframe, imgTemplate, Left, Top, Right, Bottom):
+        img = cv.imread(imgframe, 0)
+        template = cv.imread(imgTemplate, 0)
+        w, h = template.shape[::-1]
+        TemplateThreshold = 0.45
+        curMaxVal = 0
+        c = 0
+        for meth in ['cv.TM_CCOEFF_NORMED']:
+            method = eval(meth)
+            try:
+                crop_image_ = img[(Top - 45):(Bottom + 45), (Left - 45):(Right + 45)]
+                res = cv.matchTemplate(crop_image_, template, method)
+            except:
+                crop_image = img[Top:Bottom, Left:Right]
+                res = cv.matchTemplate(crop_image, template, method)
+            min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
+            if max_val > TemplateThreshold and max_val > curMaxVal:
+                curMaxVal = max_val
+                curMaxTemplate = c
+                curMaxLoc = max_loc
+            c = c + 1
+
+        try:
+            if curMaxTemplate == -1:
+                return (0, (0, 0), 0, 0, 0, 0)
+            else:
+                # print((curMaxTemplate % 3, curMaxLoc, 1 - int(curMaxTemplate / 3) * 0.2, curMaxVal, w, h))
+                return (curMaxTemplate % 3, curMaxLoc, 1 - int(curMaxTemplate / 3) * 0.2, curMaxVal, w, h)
+        except:
+            return (0, (0, 0), 0, 0, 0, 0)
+
+    def Crop_image_Area(self, imgframe, Left, Top, Right, Bottom):
+        img = cv.imread(imgframe, 0)
+        #ret2, ImageRealTime = cv.threshold(img, 100, 255, cv.THRESH_BINARY)
+        crop_image = img[Top:Bottom, Left:Right]
+        return crop_image
+
+    def Rule_Of_Thirds(self, ROT):
+        total = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        mod = len(ROT) % 9
+        if mod != 0:
+            for i in range(mod):
+                total[9] += sum(ROT[len(ROT) - mod + i])
+        layout = int(len(ROT) / 9)
+        for i in range(9):
+            i = i + 1
+            for j in range(layout * i):
+                total[i - 1] += sum(ROT[j])
+        point = [total[0]]
+        for k in range(8):
+            point.append(total[k + 1] - total[k])
+        if mod != 0:
+            point.append(total[9])
+        return point
+
+    def Process_Area(self, Data1, Data2):
+            Score_Ture = []
+            Chack = []
+            swapped = False
+            Result_Score = 0
+            for i in range(len(Data1)):
+                total = (((Data1[i] + Data2[i]) / 2) / Data2[i])
+                if total < 1.99:
+                    score_out = int(total * 1000)
+                    if score_out > 1000:
+                        score_out = 1000 - (score_out - 1000)
+                        Chack.append(1)
+                    else:
+                        Chack.append(0)
+                    Score_Ture.append(score_out)
+                else:
+                    Score_Ture.append(0)
+                    Chack.append(0)
+            for n in range(len(Score_Ture) - 1, 0, -1):
+                for i in range(n):
+                    if Score_Ture[i] > Score_Ture[i + 1]:
+                        swapped = True
+                        Score_Ture[i], Score_Ture[i + 1] = Score_Ture[i + 1], Score_Ture[i]
+            for i in range(len(Score_Ture)):
+                if i <= 4:
+                    Result_Score += Score_Ture[i]
+            Result_Score = int(Result_Score/5)
+            return [Result_Score, sum(Chack)]
+
+
+    def Main_L(self):
+        if self.CouterPoint_Left != 0:
+            self.Color_L = []
+            self.ImageSave_L = []
+            self.ColorView_L =[]
+            self.Result_L = []
+            self.Score_L = []
+            for x in range(self.CouterPoint_Left):
+                image = r'Current_Left.png'
+                self.ImageSave_L.append(cv.imread(image))
+                Template = r"" + GetAPI().PartNumber_L + "\Master""\\""Point" + str(x + 1) + "_Template.bmp"
+                (template, top_left, scale, val, w, h) = self.Process_Outline(image, Template, self.Point_Left_L[x], self.Point_Top_L[x], self.Point_Right_L[x], self.Point_Bottom_L[x])
+                if (val * 1000) >= self.Point_Score_L[x]:
+                    Template_View = cv.imread(Template, 0)
+                    Master_Image = self.Crop_image_Area(image, self.Point_Left_L[x], self.Point_Top_L[x], self.Point_Right_L[x], self.Point_Bottom_L[x])
+                    (Score_Area_Data, Chack) = self.Process_Area(self.Rule_Of_Thirds(Master_Image), self.Rule_Of_Thirds(Template_View))
+                    self.Score_L.append(Score_Area_Data)
+                    if Score_Area_Data >= self.Point_Score_L[x]:
+                        color = "Green"
+                        Green = (0, 255, 0)
+                        self.ColorView_L.append(Green)
+                    else:
+                        color = "Red"
+                        Red = (255, 0, 0)
+                        self.ColorView_L.append(Red)
+                else:
+                    self.Score_L.append(val * 1000)
+                    color = "Red"
+                    Red = (255, 0, 0)
+                    self.ColorView_L.append(Red)
+                if x <= 4:
+                            customtkinter.CTkLabel(master=self, text="Point:" + str(x + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color)).place(x=190 * (x), y=850)
+                elif x <= 9:
+                            customtkinter.CTkLabel(master=self, text="Point:" + str(x + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color)).place(x=190 * (x - 5), y=930)
+                elif x <= 15:
+                            customtkinter.CTkLabel(master=self, text="Point:" + str(x + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color)).place(x=190 * (x - 10), y=1010)
+    def Main_R(self):
+        if self.CouterPoint_Rigth != 0:
+            self.Color_R = []
+            self.ImageSave_R = []
+            self.ColorView_R = []
+            self.Result_R = []
+            self.Score_R = []
+            for x in range(self.CouterPoint_Rigth):
+                image = r'Current_Rigth.png'
+                self.ImageSave_R.append(cv.imread(image))
+                Template = r"" + GetAPI().PartNumber_R + "\Master""\\""Point" + str(x + 1) + "_Template.bmp"
+                if self.Point_Mode_R[x] == "Shape":
+                    (template, top_left, scale, val, w, h) = self.Process_Outline(image, Template, self.Point_Left_R[x], self.Point_Top_R[x], self.Point_Right_R[x], self.Point_Bottom_R[x])
+                    self.Score_R.append(self.Score_R.append(val * 1000))
+                    if (val * 1000) > self.Point_Score_R[x]:
+                        color = "Green"
+                        Green = (0, 255, 0)
+                        self.ColorView_R.append(Green)
+                    else:
+                        color = "Red"
+                        Red = (255, 0, 0)
+                        self.ColorView_R.append(Red)
+                elif self.Point_Mode_R[x] == "Color":
+                    if x <= 4:
+                        customtkinter.CTkLabel(master=self, text="Point:" + str(x + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color)).place(x=960 + (x * 190), y=850)
+                    elif x <= 9:
+                        customtkinter.CTkLabel(master=self, text="Point:" + str(x + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color)).place(x=960 + ((x - 5) * 190),y=930)
+                    elif x <= 15:
+                        customtkinter.CTkLabel(master=self, text="Point:" + str(x + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color)).place(x=960 + ((x - 10) * 190), y=1010)
+
+    def ViewImage_Snap(self,Partnumber):
+        if Partnumber == self.API.PartNumber_L:
+            image = cv.imread("Current_Left.png")
+            image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
+            for s in range(self.CouterPoint_Left):
+                cv.rectangle(image, (self.Point_Left_L[s], self.Point_Top_L[s]), (self.Point_Right_L[s], self.Point_Bottom_L[s]), self.ColorView_L[s], 2)
+                cv.putText(image, "Point" + str(s + 1), (self.Point_Left_L[s], self.Point_Top_L[s]), cv.FONT_HERSHEY_SIMPLEX, 0.7, self.ColorView_L[s], 2)
+            im = Image.fromarray(image)
+            im = im.resize((950, 520))
+            image = ImageTk.PhotoImage(image=im)
+            self.ImageReal_Left.imgtk = image
+            self.ImageReal_Left.configure(image=image)
+        elif Partnumber == self.API.PartNumber_R:
+            image = cv.imread("Current_Rigth.png")
+            image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
+            for s in range(self.CouterPoint_Rigth):
+                cv.rectangle(image, (self.Point_Left_R[s], self.Point_Top_R[s]), (self.Point_Right_R[s], self.Point_Bottom_R[s]), self.ColorView_R[s], 2)
+                cv.putText(image, "Point" + str(s + 1), (self.Point_Left_R[s], self.Point_Top_R[s]), cv.FONT_HERSHEY_SIMPLEX, 0.7, self.ColorView_R[s], 2)
+            im = Image.fromarray(image)
+            im = im.resize((950, 520))
+            image = ImageTk.PhotoImage(image=im)
+            self.ImageReal_Rigth.imgtk = image
+            self.ImageReal_Rigth.configure(image=image)
 
     def on_enter(self, event):
         self.image_logo.configure(image=self.Image_logo.ExitImage)
@@ -252,20 +497,22 @@ class App(customtkinter.CTk):
         app.destroy()
 
     def Camera(self):
-        self.Camera_1 = cv.cvtColor(frame0.read()[1], cv.COLOR_BGR2RGB)
-        img_1 = Image.fromarray(self.Camera_1)
-        resize_img_1 = img_1.resize((950, 520))
-        imgtk_1 = ImageTk.PhotoImage(image=resize_img_1)
-        self.ImageRealTime_1.imgtk = imgtk_1
-        self.ImageRealTime_1.configure(image=imgtk_1)
-
-        self.Camera_2 = cv.cvtColor(frame1.read()[1], cv.COLOR_BGR2RGB)
-        img_2 = Image.fromarray(self.Camera_2)
-        resize_img_2 = img_2.resize((950, 520))
-        imgtk_2 = ImageTk.PhotoImage(image=resize_img_2)
-        self.ImageRealTime_2.imgtk = imgtk_2
-        self.ImageRealTime_2.configure(image=imgtk_2)
+        self.Camera_Left = cv.cvtColor(frame0.read()[1], cv.COLOR_BGR2RGB)
+        Left = Image.fromarray(self.Camera_Left)
+        Resize_Left = Left.resize((950, 520))
+        self.LeftCommit = ImageTk.PhotoImage(image=Resize_Left)
+        self.Camera_Rigth = cv.cvtColor(frame1.read()[1], cv.COLOR_BGR2RGB)
+        Rigth = Image.fromarray(self.Camera_Rigth)
+        Resize_Rigth = Rigth.resize((950, 520))
+        self.RigthCommit = ImageTk.PhotoImage(image=Resize_Rigth)
+        if self.Run_Left == False and self.Run_Rigth == False:
+            self.ImageReal_Left.imgtk = self.LeftCommit
+            self.ImageReal_Left.configure(image=self.LeftCommit)
+            self.ImageReal_Rigth.imgtk = self.RigthCommit
+            self.ImageReal_Rigth.configure(image=self.RigthCommit)
         self.after(20, self.Camera)
+
+
     def AddMaster(self):
         customtkinter.CTkButton(master=self, text="Add-master", text_color="#00B400", hover_color="#B4F0B4", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=("#353535"), command=self.SaveMasterNewWindow).place(x=1300, y=10)
     def TCP(self):
@@ -311,13 +558,14 @@ class App(customtkinter.CTk):
                     Point = Point_value.get()
                     Emp_ID = Password.get()
                     Score = Score_value.get()
+                    Mode = Mode_value.get()
                     if str.isdigit(Score) and int(Score) >= 500:
                         if Side.get() == 1:
                             Partnumber = self.API.PartNumber_R
-                            Imagesave = Image.fromarray(self.Camera_1)
+                            Imagesave = Image.fromarray(self.Camera_Rigth)
                         else:
                             Partnumber = self.API.PartNumber_L
-                            Imagesave = Image.fromarray(self.Camera_2)
+                            Imagesave = Image.fromarray(self.Camera_Left)
                         Imagesave.save("Current.png")
                         Create = Partnumber + '/Master'
                         if not os.path.exists(Create):
@@ -354,7 +602,7 @@ class App(customtkinter.CTk):
                                     cv.imshow(Point, Showtext)
                                     img.save('' + Create + '/' + Point + '_Template.bmp')
                                     if Left and Top and Right and Bottom != 0:
-                                        self.Master(Left, Top, Right, Bottom, Score, Point, Emp_ID, Partnumber)
+                                        self.Master(Left, Top, Right, Bottom, Score, Point, Emp_ID,Mode,Partnumber)
                         path = r'Current.png'
                         image = cv.imread(path)
                         clone = image.copy()
@@ -421,7 +669,7 @@ class App(customtkinter.CTk):
         new_scaling_float = int(new_scaling.replace("%", "")) / 100
         customtkinter.set_widget_scaling(new_scaling_float)
 
-    def Master(self, Left, Top, Right, Bottom, Score, Point, Emp_ID, Partnumber):
+    def Master(self, Left, Top, Right, Bottom, Score, Point, Emp_ID,Mode ,Partnumber):
         Score = int(Score)
         try:
             with open(Partnumber+'/'+Partnumber+'.json', 'r') as json_file:
@@ -431,6 +679,7 @@ class App(customtkinter.CTk):
                     try:
                         if Point == "Point" + str_:
                             i = i - 1
+                            item[i]["Point" + str_][0]["Mode"] = Mode
                             item[i]["Point" + str_][0]["Emp ID"] = Emp_ID
                             item[i]["Point" + str_][0]["Left"] = Left
                             item[i]["Point" + str_][0]["Top"] = Top
@@ -446,7 +695,7 @@ class App(customtkinter.CTk):
                         try:
                             logging.debug(item[i - 1])
                             item.append({'' + Point + '': [
-                                {"Emp ID": Emp_ID, 'Left': Left, 'Top': Top, "Right": Right, "Bottom": Bottom, 'Score': Score}]})
+                                {"Emp ID": Emp_ID, "Mode":Mode, 'Left': Left, 'Top': Top, "Right": Right, "Bottom": Bottom, 'Score': Score}]})
                             with open(Partnumber+'/'+Partnumber+'.json', 'w') as json_file:
                                 json.dump(item, json_file, indent=6)
                         except:
@@ -455,7 +704,7 @@ class App(customtkinter.CTk):
             if Point == "Point1":
                 item = [
                     {'' + Point + '': [
-                        {"Emp ID": Emp_ID, 'Left': Left, 'Top': Top, "Right": Right, "Bottom": Bottom, 'Score': Score}]}]
+                        {"Emp ID": Emp_ID, "Mode":Mode, 'Left': Left, 'Top': Top, "Right": Right, "Bottom": Bottom, 'Score': Score}]}]
                 with open(Partnumber+'/'+Partnumber+'.json', 'w') as json_file:
                     json.dump(item, json_file, indent=6)
 
