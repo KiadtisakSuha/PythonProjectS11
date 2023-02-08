@@ -91,6 +91,7 @@ class GetImage:
 
 
 class Shape:
+
     @staticmethod
     def Process_Area(Data1, Data2):
         Score_Ture = []
