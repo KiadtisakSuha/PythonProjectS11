@@ -25,15 +25,15 @@ font = "arial"
 Camera_Qutity = 2
 if Camera_Qutity == 1:
     frame0 = cv.VideoCapture(0,cv.CAP_DSHOW)
-    frame0.set(cv.CAP_PROP_FRAME_WIDTH, 1980)
-    frame0.set(cv.CAP_PROP_FRAME_HEIGHT, 1080)
+    frame0.set(cv.CAP_PROP_FRAME_WIDTH, 1024)
+    frame0.set(cv.CAP_PROP_FRAME_HEIGHT, 768)
 elif Camera_Qutity ==2:
     frame0 = cv.VideoCapture(0, cv.CAP_DSHOW)
     frame1 = cv.VideoCapture(1, cv.CAP_DSHOW)
-    frame0.set(cv.CAP_PROP_FRAME_WIDTH, 1980)
-    frame0.set(cv.CAP_PROP_FRAME_HEIGHT, 1080)
-    frame1.set(cv.CAP_PROP_FRAME_WIDTH, 1980)
-    frame1.set(cv.CAP_PROP_FRAME_HEIGHT, 1080)
+    frame0.set(cv.CAP_PROP_FRAME_WIDTH, 1024)
+    frame0.set(cv.CAP_PROP_FRAME_HEIGHT, 768)
+    frame1.set(cv.CAP_PROP_FRAME_WIDTH, 1024)
+    frame1.set(cv.CAP_PROP_FRAME_HEIGHT, 768)
 
 
 class GetEmp():
@@ -332,7 +332,6 @@ class App(customtkinter.CTk):
                 self.Main(Partnumber)
                 self.ViewImage_Snap(Partnumber)
                 self.Save_Image(Partnumber)
-                self.Clear_Data(Partnumber)
         elif x == 2:
             if self.CouterPoint_Right != 0:
                 self.Run_Right = True
@@ -443,8 +442,14 @@ class App(customtkinter.CTk):
             return int(min(Score_Ture))
 
 
-    def Main(self):
+    def Main(self,Partnumber):
         if Partnumber == self.API.PartNumber_L:
+            self.Color_L = []
+            self.ImageSave_L = []
+            self.ColorView_L = []
+            self.Color_Save_Image_L = []
+            self.Result_L = []
+            self.Score_L = []
             if self.CouterPoint_Left != 0:
                 for x in range(self.CouterPoint_Left):
                     image = r'Current_Left.png'
@@ -609,14 +614,6 @@ class App(customtkinter.CTk):
             image = ImageTk.PhotoImage(image=im)
             self.ImageReal_Right.imgtk = image
             self.ImageReal_Right.configure(image=image)
-
-    def Clear_Data(self,Partnumber):
-        self.Color_L.clear()
-        self.ImageSave_L.clear()
-        self.ColorView_L.clear()
-        self.Color_Save_Image_L.clear()
-        self.Result_L.clear()
-        self.Score_L.clear()
 
     def on_enter(self, event):  
         self.image_logo.configure(image=self.Image_logo.ExitImage)
