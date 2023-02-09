@@ -480,15 +480,15 @@ class App(customtkinter.CTk):
         if x == 1:
             if self.CouterPoint_Left != 0:
                 self.Run_Left = True
-                Partnumber = self.API.PartNumber_L
-                Imagesave = Image.fromarray(self.Camera_Left)
-                Imagesave.save("Current_Left.png")
-                self.Main(Partnumber)
-                self.ViewImage_Snap(Partnumber)
-                Save_Data.Save_Image(GetAPI().PartNumber_L,self.CouterPoint_Left,self.ImageSave_L,self.Point_Mode_L,self.Point_Left_L,self.Point_Top_L,self.Point_Right_L,self.Point_Bottom_L,self.Color_Save_Image_L,self.Score_L,self.Point_Score_L,self.Result_L)
+                Filename = "Current_Left"
+                cv.imwrite(Filename+'.png', frame0.read()[1])
+                Color,ImageSave,ColorView,Color_Save_Image,Result,Score = self.Main(Partnumber,Filename,Counter,self.Point_Mode_L,self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L,self.Point_Score_L)
+                print(Color,ImageSave,ColorView,Color_Save_Image,Result,Score)
+                #self.ViewImage_Snap(Partnumber)
+                #Save_Data.Save_Image(GetAPI().PartNumber_L,self.CouterPoint_Left,self.ImageSave_L,self.Point_Mode_L,self.Point_Left_L,self.Point_Top_L,self.Point_Right_L,self.Point_Bottom_L,self.Color_Save_Image_L,self.Score_L,self.Point_Score_L,self.Result_L)
                 #self.Save_Image(Partnumber)
-                self.ShowResult(Partnumber)
-                Save_Data.Save_Score(GetAPI().PartNumber_L, GetAPI().BatchNumber_L, GetAPI().MachineName_L,self.CouterPoint_Left,self.Score_L,self.Result_L)
+                #self.ShowResult(Partnumber)
+                #Save_Data.Save_Score(GetAPI().PartNumber_L, GetAPI().BatchNumber_L, GetAPI().MachineName_L,self.CouterPoint_Left,self.Score_L,self.Result_L)
                 #def Save_Image(Partnumber, Counter, Image, Mode, Left, Top, Right, Bottom, Color, Score, Score_Set, Result):
         elif x == 2:
             if self.CouterPoint_Right != 0:
@@ -501,116 +501,56 @@ class App(customtkinter.CTk):
                 self.Save_Image(Partnumber)
                 Save_Data.Save_Score(GetAPI().PartNumber_R, GetAPI().BatchNumber_R, GetAPI().MachineName_R, self.CouterPoint_Right, self.Score_R, self.Result_R)
 
-    def Main(self, Partnumber):
-        if Partnumber == self.API.PartNumber_L:
-            self.Color_L = []
-            self.ImageSave_L = []
-            self.ColorView_L = []
-            self.Color_Save_Image_L = []
-            self.Result_L = []
-            self.Score_L = []
-            if self.CouterPoint_Left != 0:
-                for x in range(self.CouterPoint_Left):
-                    image = r'Current_Left.png'
-                    self.ImageSave_L.append(cv.imread(image))
-                    Template = r"" + GetAPI().PartNumber_L + "\Master""\\""Point" + str(x + 1) + "_Template.bmp"
-                    (template, top_left, scale, val, w, h) = Shape.Process_Outline(image, Template, self.Point_Left_L[x], self.Point_Top_L[x], self.Point_Right_L[x], self.Point_Bottom_L[x])
-                    Master_Image = CropImage.Crop_Image(image, self.Point_Left_L[x], self.Point_Top_L[x], self.Point_Right_L[x], self.Point_Bottom_L[x], self.Point_Mode_L[x])
-                    if scale == 1 and (val * 1000) >= self.Point_Score_L[x]:
-                        if self.Point_Mode_L[x] == "Shape":
+    def Main(self, Partnumber,Image_Side,Counter,Left,Top,Right,Bottom,Score_Set,Mode,Color_Data):
+            Color = []
+            ImageSave = []
+            ColorView = []
+            Color_Save_Image = []
+            Result = []
+            Score = []
+            image = Image_Side+'.png'
+            if Counter != 0:
+                for x in range(Counter):
+                    #image = r'Current_Left.png'
+                    ImageSave.append(cv.imread(image))
+                    Template = r"" + Partnumber + "\Master""\\""Point" + str(x + 1) + "_Template.bmp"
+                    (template, top_left, scale, val, w, h) = Shape.Process_Outline(image, Template, Left[x], Top[x], Right[x], Bottom[x])
+                    Master_Image = CropImage.Crop_Image(image, Left[x], Top[x], Right[x], Bottom[x], Mode[x])
+                    if scale == 1 and (val * 1000) >= Score_Set[x]:
+                        if Mode[x] == "Shape":
                             Template_View = cv.imread(Template, 0)
                             Score_Area_Data = Shape.Process_Area(Shape.Rule_Of_Thirds(Master_Image), Shape.Rule_Of_Thirds(Template_View))
-                            self.Score_L.append(Score_Area_Data)
-                            if Score_Area_Data >= self.Point_Score_L[x]:
+                            Score.append(Score_Area_Data)
+                            if Score_Area_Data >= Score_Set[x]:
                                 color = "Green"
-                                self.ColorView_L.append((0, 255, 0))
-                                self.Color_Save_Image_L.append((0, 255, 0))
-                                self.Result_L.append(1)
+                                ColorView.append((0, 255, 0))
+                                Color_Save_Image.append((0, 255, 0))
+                                Result.append(1)
                             else:
                                 color = "Red"
-                                self.ColorView_L.append((255, 0, 0))
-                                self.Color_Save_Image_L.append((0, 0, 255))
-                                self.Result_L.append(0)
-                        elif self.Point_Mode_L[x] == "Color":
-                            Score_Color = Color.ColorScore(self.Point_Color_L[x], Color.ReadRBG(Master_Image))
-                            self.Score_L.append(Score_Color)
-                            if Score_Color >= self.Point_Score_L[x]:
+                                ColorView.append((255, 0, 0))
+                                Color_Save_Image.append((0, 0, 255))
+                                Result.append(0)
+                        elif Mode[x] == "Color":
+                            Score_Color = Color.ColorScore(Color_Data[x], Color.ReadRBG(Master_Image))
+                            Score.append(Score_Color)
+                            if Score_Color >= Score_Set[x]:
                                 color = "Green"
-                                self.ColorView_L.append((0, 255, 0))
-                                self.Result_L.append(1)
-                                self.Color_Save_Image_L.append((0, 255, 0))
+                                ColorView.append((0, 255, 0))
+                                Result.append(1)
+                                Color_Save_Image.append((0, 255, 0))
                             else:
                                 color = "Red"
-                                self.ColorView_L.append((255, 0, 0))
-                                self.Result_L.append(0)
-                                self.Color_Save_Image_L.append((0, 0, 255))
+                                ColorView.append((255, 0, 0))
+                                Result.append(0)
+                                Color_Save_Image.append((0, 0, 255))
                     else:
                         color = "Red"
-                        self.ColorView_L.append((255, 0, 0))
-                        self.Score_L.append(0)
-                        self.Result_L.append(0)
-                        self.Color_Save_Image_L.append((0, 0, 255))
-                    if x <= 4:
-                        customtkinter.CTkLabel(master=self, text="Point:" + str(x + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color)).place(x=190 * (x), y=850)
-                    elif x <= 9:
-                        customtkinter.CTkLabel(master=self, text="Point:" + str(x + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color)).place(x=190 * (x - 5), y=930)
-                    elif x <= 15:
-                        customtkinter.CTkLabel(master=self, text="Point:" + str(x + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color)).place(x=190 * (x - 10), y=1010)
-
-        elif Partnumber == self.API.PartNumber_R:
-            if self.CouterPoint_Right != 0:
-                self.Color_R = []
-                self.ImageSave_R = []
-                self.ColorView_R = []
-                self.Color_Save_Image_R = []
-                self.Result_R = []
-                self.Score_R = []
-                for x in range(self.CouterPoint_Right):
-                    image = r'Current_Right.png'
-                    self.ImageSave_R.append(cv.imread(image))
-                    Template = r"" + GetAPI().PartNumber_R + "\Master""\\""Point" + str(x + 1) + "_Template.bmp"
-                    (template, top_left, scale, val, w, h) = Shape.Process_Outline(image, Template, self.Point_Left_R[x], self.Point_Top_R[x], self.Point_Right_R[x], self.Point_Bottom_R[x])
-                    Master_Image = CropImage.Crop_Image(image, self.Point_Left_R[x], self.Point_Top_R[x], self.Point_Right_R[x], self.Point_Bottom_R[x], self.Point_Mode_R[x])
-                    if scale == 1 and (val * 1000) >= self.Point_Score_R[x]:
-                        if self.Point_Mode_R[x] == "Shape":
-                            Template_View = cv.imread(Template, 0)
-                            Score_Area_Data = Shape.Process_Area(Shape.Rule_Of_Thirds(Master_Image), Shape.Rule_Of_Thirds(Template_View))
-                            self.Score_R.append(Score_Area_Data)
-                            if Score_Area_Data >= self.Point_Score_R[x]:
-                                color = "Green"
-                                self.ColorView_R.append((0, 255, 0))
-                                self.Color_Save_Image_R.append((0, 255, 0))
-                                self.Result_R.append(1)
-                            else:
-                                color = "Red"
-                                self.ColorView_R.append((255, 0, 0))
-                                self.Color_Save_Image_R.append((0, 0, 255))
-                                self.Result_R.append(0)
-                        elif self.Point_Mode_R[x] == "Color":
-                            Score_Color = Color.ColorScore(self.Point_Color_R[x], Color.ReadRBG(Master_Image))
-                            self.Score_R.append(Score_Color)
-                            if Score_Color >= self.Point_Score_R[x]:
-                                color = "Green"
-                                self.ColorView_R.append((0, 255, 0))
-                                self.Result_R.append(1)
-                                self.Color_Save_Image_R.append((0, 255, 0))
-                            else:
-                                color = "Red"
-                                self.ColorView_R.append((255, 0, 0))
-                                self.Result_R.append(0)
-                                self.Color_Save_Image_R.append((0, 0, 255))
-                    else:
-                        color = "Red"
-                        self.ColorView_R.append((255, 0, 0))
-                        self.Score_R.append(0)
-                        self.Result_R.append(0)
-                        self.Color_Save_Image_R.append((0, 0, 255))
-                    if x <= 4:
-                        customtkinter.CTkLabel(master=self, text="Point:" + str(x + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color)).place(x=960 + (x * 190), y=850)
-                    elif x <= 9:
-                        customtkinter.CTkLabel(master=self, text="Point:" + str(x + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color)).place(x=960 + ((x - 5) * 190), y=930)
-                    elif x <= 15:
-                        customtkinter.CTkLabel(master=self, text="Point:" + str(x + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color)).place(x=960 + ((x - 10) * 190), y=1010)
+                        ColorView.append((255, 0, 0))
+                        Score.append(0)
+                        Result.append(0)
+                        Color_Save_Image.append((0, 0, 255))
+            return Color,ImageSave,ColorView,Color_Save_Image,Result,Score
 
 
 
