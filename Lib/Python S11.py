@@ -356,7 +356,38 @@ class Save_Data:
                 with open(Partnumber + '/' + Partnumber + '.json', 'w') as json_file:
                     json.dump(item, json_file, indent=6)
 
+class Packing:
+    @staticmethod
+    def Check_Priter(Partnumber,Packing):
+        try:
+            Check_File = os.path.isfile(Partnumber + '\Couter_Printer.json')
+            if Check_File is False:
+                item = {"Partnumber": Partnumber, "Counter": 0, 'Packing': Packing}
+                with open(Partnumber + '\Couter_Printer.json', 'w') as json_file:
+                    json.dump(item, json_file, indent=6)
+        except:
+            pass
 
+    @staticmethod
+    def Couter_Printer(Partnumber,Packing):
+        with open(Partnumber+'\Couter_Printer.json', 'r') as json_file:
+            Data = json.loads(json_file.read())
+        Packing_Couter = Data["Counter"]
+        PackPart = Data["Partnumber"]
+        if PackPart != Partnumber:
+            Printer = {"Partnumber": Partnumber, "Counter": 1, "Packing": Packing}
+            with open(Partnumber+'\Couter_Printer.json', 'w') as json_file:
+                json.dump(Printer, json_file, indent=6)
+        else:
+            Printer = {"Partnumber": Partnumber, "Counter": Packing_Couter + 1, "Packing": Packing}
+            with open(Partnumber+'\Couter_Printer.json', 'w') as json_file:
+                json.dump(Printer, json_file, indent=6)
+            if (Packing-1) == Packing_Couter:
+                Printer = {"Partnumber": Partnumber, "Counter": 0, "Packing": Packing}
+                with open(Partnumber+'\Couter_Printer.json', 'w') as json_file:
+                    json.dump(Printer, json_file, indent=6)
+                with open('Printer.txt', 'w') as f:
+                    f.write('Printer')
 
 class App(customtkinter.CTk):
     customtkinter.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
@@ -378,6 +409,7 @@ class App(customtkinter.CTk):
         self.Run_Right = False
         self.Image_logo = GetImage()
 
+
         self.ReadFile()
         self.ReadFileScore()
         self.View()
@@ -386,19 +418,17 @@ class App(customtkinter.CTk):
         self.AddMaster()
         customtkinter.CTkLabel(master=self, text="Vision Inspection", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=50, weight="bold"), corner_radius=10).place(x=140, y=10)
         customtkinter.CTkLabel(master=self, text="v 1.0.0", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=15, weight="bold"), corner_radius=10).place(x=490, y=10)
-        #command=lambda: self.ViewImagePart(self.API.PartNumber_L)
-        self.ImageReal_Left = customtkinter.CTkLabel(master=self,text="")
+        self.ImageReal_Left = tk.Button(self, bg="White", command=lambda: self.ViewImagePart(self.API.PartNumber_L))
         self.ImageReal_Left.place(x=0, y=280)
-        #command=lambda: self.ViewImagePart(self.API.PartNumber_R)
-        self.ImageReal_Right = customtkinter.CTkLabel(master=self,text="")
+        self.ImageReal_Right = tk.Button(self, bg="White", command=lambda: self.ViewImagePart(self.API.PartNumber_R))
         self.ImageReal_Right.place(x=960, y=280)
         self.image_logo = tk.Button(self, bg="#232323", image=self.Image_logo.BKFImage, command=self.Destory, bd=0)
         self.image_logo.place(x=1755, y=10)
         self.image_logo.bind("<Enter>", self.on_enter)
         self.image_logo.bind("<Leave>", self.on_leave)
         self.Camera()
-        self.scaling_optionemenu = customtkinter.CTkOptionMenu(master=self, values=["50%", "60%", "70%","80%", "90%", "100%", "110%", "120%"], command=self.change_scaling_event)
-        self.scaling_optionemenu.place(x=1000, y=80)
+        #self.scaling_optionemenu = customtkinter.CTkOptionMenu(master=self, values=["50%", "60%", "70%","80%", "90%", "100%", "110%", "120%"], command=self.change_scaling_event)
+        #self.scaling_optionemenu.place(x=1000, y=80)
         customtkinter.CTkButton(master=self, text="Reorder", text_color="#00B400", hover_color="#B4F0B4", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=("#353535"),
                                 command=lambda: [self.ReadFile(), self.ReadFileScore(), self.View()]).place(x=1570, y=10)
     def ViewImagePart(self, Partnumber):
@@ -504,6 +534,10 @@ class App(customtkinter.CTk):
             pass
 
     def View(self):
+        self.Run_Left = False
+        self.Run_Right = False
+        Packing.Check_Priter(GetAPI().PartNumber_L,GetAPI().Packing_L)
+        Packing.Check_Priter(GetAPI().PartNumber_R,GetAPI().Packing_R)
         self.API = GetAPI()
         if self.API.Sever == "Connected":
             color = "#00B400"
@@ -581,14 +615,6 @@ class App(customtkinter.CTk):
         ViewNG.configure(background='#232323')
         ViewNG.geometry('220x120')
 
-    """""""""
-    def ViewNG_RealTime(self):
-        if self.LablePoint_Left.winfo_pointerx() < 155:
-            print("Point1")
-        if self.LablePoint_Left.winfo_pointerx() > 155 and self.LablePoint_Left.winfo_pointerx() > 155:
-            print("Point2")
-    print(self.LablePoint_Left.winfo_pointerx())
-    """""""""
 
     def Processing(self, x):
         if x == 1:
@@ -604,6 +630,7 @@ class App(customtkinter.CTk):
                 if Data is True:
                     self.CouterOK_Left = self.CouterOK_Left + 1
                     self.OK_L.configure(text="NG : " + str(self.CouterOK_Left))
+                    Packing.Couter_Printer(GetAPI().PartNumber_L,GetAPI().Packing_L)
                 elif Data is False:
                     self.CouterNG_Left = self.CouterNG_Left + 1
                     self.NG_L.configure(text="NG : " + str(self.CouterNG_Left))
@@ -628,6 +655,22 @@ class App(customtkinter.CTk):
                     self.NG_R.configure(text="NG : " + str(self.CouterNG_Right))
                 self.ImageReal_Right.imgtk = image
                 self.ImageReal_Right.configure(image=image)
+
+    def PrintText(self):
+        with open('Couter_Printer.json', 'r') as json_file:
+            Data = json.loads(json_file.read())
+        Packing_Couter = Data["Couter"]
+        PackPart = Data["Partnumber"]
+        self.PACKING_NUMBER = tk.LabelFrame(self, text="PACKING",bg='black')
+        self.PACKING_NUMBER.configure(font=("Arial", 10))
+        self.PACKING_NUMBER.configure(fg='Green')
+        self.PACKING_NUMBER.place(x=720, y=220, height=60, width=225)
+        self.PACKING_NUMBERP = tk.Label(self.PACKING_NUMBER, text=str(Packing_Couter) + "/" + str(self.Packing_API),bg='black')
+        self.PACKING_NUMBERP.configure(font=("Arial", 22))
+        self.PACKING_NUMBERP.configure(fg='Green')
+        self.PACKING_NUMBERP.place(x=10, y=15, anchor=tk.W)
+
+
 
     def on_enter(self, event):
         self.image_logo.configure(image=self.Image_logo.ExitImage)
@@ -808,12 +851,11 @@ class App(customtkinter.CTk):
         customtkinter.CTkButton(Login, text="Login", text_color="#00B400", hover_color="#B4F0B4", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=30, weight="bold"), corner_radius=10, fg_color=("#353535"), command=Search).place(x=40, y=70)
         Login.mainloop()
 
-    def change_scaling_event(self):
-        print(self.scaling_optionemenu.get())
+    def change_scaling_event(self,new_scaling: str):
         new_scaling_float = int(self.scaling_optionemenu.get().replace("%", "")) / 100
         customtkinter.set_widget_scaling(new_scaling_float)
-        return new_scaling
-    print(change_scaling_event)
+
+
 
 
 

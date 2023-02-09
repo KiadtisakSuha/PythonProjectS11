@@ -1,35 +1,16 @@
-import customtkinter
-from PIL import ImageTk, Image, ImageDraw
-import cv2 as cv
-customtkinter.set_appearance_mode("dark")  # Modes: "System" (standard), "Dark", "Light"
-customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
-
-app = customtkinter.CTk()
-app.geometry("400x780")
-app.title("CustomTkinter simple_example.py")
-
-def button_callback():
-    print("Button click")
+import os
+import json
+Partnumber = "TBA35C9LCO"
+Packing = 10
 
 
-def slider_callback(value):
-    progressbar_1.set(value)
+def Check_Priter(Partnumber, Packing):
+    Check_File = os.path.isfile(Partnumber + '\Couter_Printer.json')
+    print(Check_File)
+    if Check_File == False:
+        item = {"Partnumber": Partnumber, "Counter": 0, 'Packing': Packing}
+        with open(Partnumber+'\Couter_Printer.json', 'w') as json_file:
+            json.dump(item, json_file, indent=6)
 
 
-
-x = cv.imread("Current_Right.png")
-import customtkinter
-from PIL import Image, ImageTk
-
-
-
-button = customtkinter.CTkButton(master=app,
-                                    width=120,
-                                    height=32,
-                                    border_width=0,
-                                    corner_radius=8,
-                                    text="CTkButton",
-
-                                    image=ImageTk.PhotoImage(file="Current_Right.png")
-                                    )
-app.mainloop()
+Check_Priter(Partnumber,Packing)
