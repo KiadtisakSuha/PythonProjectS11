@@ -226,6 +226,24 @@ class Save_Data:
         with open('Transaction/' + Time + '.json', 'w') as json_file:
             json.dump(Transition, json_file, indent=6)
 
+    @staticmethod
+    def Save_Image(Partnumber,Counter,Image,Mode,Left,Top,Right,Bottom,Color,Score,Score_Set,Result):
+        named_tuple = time.localtime()
+        Time = time.strftime("%Y%m%d%H%M%S", named_tuple)
+        for s in range(Counter):
+                cv.rectangle(Image[s], (Left[s], Top[s]), (Right[s], Bottom[s]), Color[s], 3)
+                cv.putText(Image[s], "Mode : " + Mode[s], (10, 25), cv.FONT_HERSHEY_SIMPLEX, 1, Color[s], 2)
+                cv.putText(Image[s], "Score : " + str(Score[s]) + " / " + str(Score_Set[s]), (10, 55), cv.FONT_HERSHEY_SIMPLEX, 1, Color[s], 2)
+                cv.putText(Image[s], "Time : " + str(Time) + "", (10, 85), cv.FONT_HERSHEY_SIMPLEX, 1, Color[s], 2)
+                if s <= 8:
+                    Point = "0"
+                else:
+                    Point = ""
+                if Result[s] == 1:
+                    cv.imwrite('Record/' + Partnumber +'/OK/Point' + str(s + 1)+'/'+Time + '_P' + Point + str(s + 1) + '.jpg', Image[s])
+                else:
+                    cv.imwrite('Record/' + Partnumber +'/NG/Point' + str(s + 1)+'/'+Time + '_P' + Point + str(s + 1) + '.jpg', Image[s])
+
 
 
 class App(customtkinter.CTk):
@@ -467,9 +485,11 @@ class App(customtkinter.CTk):
                 Imagesave.save("Current_Left.png")
                 self.Main(Partnumber)
                 self.ViewImage_Snap(Partnumber)
-                self.Save_Image(Partnumber)
+                Save_Data.Save_Image(GetAPI().PartNumber_L,self.CouterPoint_Left,self.ImageSave_L,self.Point_Mode_L,self.Point_Left_L,self.Point_Top_L,self.Point_Right_L,self.Point_Bottom_L,self.Color_Save_Image_L,self.Score_L,self.Point_Score_L,self.Result_L)
+                #self.Save_Image(Partnumber)
                 self.ShowResult(Partnumber)
                 Save_Data.Save_Score(GetAPI().PartNumber_L, GetAPI().BatchNumber_L, GetAPI().MachineName_L,self.CouterPoint_Left,self.Score_L,self.Result_L)
+                #def Save_Image(Partnumber, Counter, Image, Mode, Left, Top, Right, Bottom, Color, Score, Score_Set, Result):
         elif x == 2:
             if self.CouterPoint_Right != 0:
                 self.Run_Right = True
@@ -592,39 +612,10 @@ class App(customtkinter.CTk):
                     elif x <= 15:
                         customtkinter.CTkLabel(master=self, text="Point:" + str(x + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color)).place(x=960 + ((x - 10) * 190), y=1010)
 
-    def Save_Image(self, Partnumber,Counter,Image,Left,Top,Right,Bottom,Color):
-        named_tuple = time.localtime()
-        #Date = time.strftime("%Y%m%d", named_tuple)
-        Time = time.strftime("%Y%m%d%H%M%S", named_tuple)
-        if Partnumber == self.API.PartNumber_L:
-            for L in range(self.CouterPoint_Left):
-                cv.rectangle(self.ImageSave_L[L], (self.Point_Left_L[L], self.Point_Top_L[L]), (self.Point_Right_L[L], self.Point_Bottom_L[L]), self.Color_Save_Image_L[L], 3)
-                cv.putText(self.ImageSave_L[L], "Mode : " + self.Point_Mode_L[L], (10, 25), cv.FONT_HERSHEY_SIMPLEX, 1, self.Color_Save_Image_L[L], 2)
-                cv.putText(self.ImageSave_L[L], "Score : " + str(self.Score_L[L]) + " / " + str(self.Point_Score_L[L]), (10, 55), cv.FONT_HERSHEY_SIMPLEX, 1, self.Color_Save_Image_L[L], 2)
-                cv.putText(self.ImageSave_L[L], "Time : " + str(Time) + "", (10, 85), cv.FONT_HERSHEY_SIMPLEX, 1, self.Color_Save_Image_L[L], 2)
-                if L <= 8:
-                    Point = "0"
-                else:
-                    Point = ""
-                if self.Result_L[L] == 1:
-                    cv.imwrite('Record/' + Partnumber +'/OK/Point' + str(L + 1)+'/'+Time + '_P' + Point + str(L + 1) + '.jpg', self.ImageSave_L[L])
-                else:
-                    cv.imwrite('Record/' + Partnumber +'/NG/Point' + str(L + 1)+'/'+Time + '_P' + Point + str(L + 1) + '.jpg', self.ImageSave_L[L])
 
-        elif Partnumber == self.API.PartNumber_R:
-            for R in range(self.CouterPoint_Right):
-                cv.rectangle(self.ImageSave_R[R], (self.Point_Left_R[R], self.Point_Top_R[R]), (self.Point_Right_R[R], self.Point_Bottom_R[R]), self.Color_Save_Image_R[R], 3)
-                cv.putText(self.ImageSave_R[R], "Mode : " + self.Point_Mode_R[R], (10, 25), cv.FONT_HERSHEY_SIMPLEX, 1, self.Color_Save_Image_R[R], 2)
-                cv.putText(self.ImageSave_R[R], "Score : " + str(self.Score_R[R]) + " / " + str(self.Point_Score_R[R]), (10, 55), cv.FONT_HERSHEY_SIMPLEX, 1, self.Color_Save_Image_R[R], 2)
-                cv.putText(self.ImageSave_R[R], "Time : " + str(Time) + "", (10, 85), cv.FONT_HERSHEY_SIMPLEX, 1, self.Color_Save_Image_R[R], 2)
-                if R <= 8:
-                    Point = "0"
-                else:
-                    Point = ""
-                if self.Result_R[R] == 1:
-                    cv.imwrite('Record/' + Partnumber +'/OK/Point' + str(R + 1)+'/'+Time + '_P' + Point + str(R + 1) + '.jpg', self.ImageSave_R[R])
-                else:
-                    cv.imwrite('Record/' + Partnumber +'/NG/Point' + str(R + 1)+'/'+Time + '_P' + Point + str(R + 1) + '.jpg', self.ImageSave_R[R])
+
+
+
 
 
     def ShowResult(self,Partnumber):
