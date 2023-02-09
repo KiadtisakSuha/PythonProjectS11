@@ -208,7 +208,23 @@ class Color:
                 total.append((Data1[i] / Data2[i]) * 1000)
         return int(min(total))
 
-
+class Save_Data:
+    @staticmethod
+    def Save_Score(Partnumber, Batch, Machine, Couter, Score, Result):
+        named_tuple = time.localtime()
+        Time = time.strftime("%Y%m%d%H%M%S", named_tuple)
+        parent_dir = 'Transaction/'
+        path = os.path.join(parent_dir)
+        try:
+            os.makedirs(path, exist_ok=True)
+        except OSError as error:
+            pass
+        Transition = [dict(PartNumber=Partnumber, BatchNumber=Batch, MachineName=Machine, Details=[])]
+        for s in range(Couter):
+            Transition[0]["Details"].append([dict(Score=int(Score[s]),
+                                                  Result=Result[s], Point=s + 1)])
+        with open('Transaction/' + Time + '.json', 'w') as json_file:
+            json.dump(Transition, json_file, indent=6)
 
 
 
@@ -374,9 +390,10 @@ class App(customtkinter.CTk):
         customtkinter.CTkLabel(master=self, text=self.API.BatchNumber_L, text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), fg_color=("#00B400"), corner_radius=10).place(x=150, y=180)
         customtkinter.CTkLabel(master=self, text="Part Name :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold")).place(x=10, y=220)
         customtkinter.CTkLabel(master=self, text=self.API.PartName_L[:30], text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), fg_color=("#00B400"), corner_radius=10).place(x=150, y=220)
-        customtkinter.CTkButton(master=self, text="NG : " + str(self.CouterNG_Left), text_color="#FFFFFF", hover_color="#C80000", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=50, weight="bold"), corner_radius=10, fg_color=("#FF0000"), command=lambda: self.ViewNG("NG_Left")).place(
-            x=620, y=180)
-        customtkinter.CTkLabel(master=self, text="OK : " + str(self.CouterOK_Left), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=52, weight="bold"), corner_radius=10, fg_color=("#00B400")).place(x=620, y=100)
+        self.NG_L = customtkinter.CTkButton(master=self, text="NG : " + str(self.CouterNG_Left), text_color="#FFFFFF", hover_color="#C80000", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=50, weight="bold"), corner_radius=10, fg_color=("#FF0000"), command=lambda: self.ViewNG("NG_Left"))
+        self.NG_L.place(x=620, y=180)
+        self.OK_L = customtkinter.CTkLabel(master=self, text="OK : " + str(self.CouterOK_Left), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=52, weight="bold"), corner_radius=10, fg_color=("#00B400"))
+        self.OK_L.place(x=620, y=100)
         customtkinter.CTkLabel(master=self, text="Packing :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), corner_radius=10).place(x=400, y=100)
         customtkinter.CTkLabel(master=self, text=str(self.CouterPacking_Left) + "/" + str(self.API.Packing_L), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), corner_radius=10, fg_color=("#00B400")).place(x=530, y=100)
 
@@ -451,6 +468,8 @@ class App(customtkinter.CTk):
                 self.Main(Partnumber)
                 self.ViewImage_Snap(Partnumber)
                 self.Save_Image(Partnumber)
+                self.ShowResult(Partnumber)
+                Save_Data.Save_Score(GetAPI().PartNumber_L, GetAPI().BatchNumber_L, GetAPI().MachineName_L,self.CouterPoint_Left,self.Score_L,self.Result_L)
         elif x == 2:
             if self.CouterPoint_Right != 0:
                 self.Run_Right = True
@@ -460,6 +479,7 @@ class App(customtkinter.CTk):
                 self.Main(Partnumber)
                 self.ViewImage_Snap(Partnumber)
                 self.Save_Image(Partnumber)
+                Save_Data.Save_Score(GetAPI().PartNumber_R, GetAPI().BatchNumber_R, GetAPI().MachineName_R, self.CouterPoint_Right, self.Score_R, self.Result_R)
 
     def Main(self, Partnumber):
         if Partnumber == self.API.PartNumber_L:
@@ -572,7 +592,7 @@ class App(customtkinter.CTk):
                     elif x <= 15:
                         customtkinter.CTkLabel(master=self, text="Point:" + str(x + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color)).place(x=960 + ((x - 10) * 190), y=1010)
 
-    def Save_Image(self, Partnumber):
+    def Save_Image(self, Partnumber,Counter,Image,Left,Top,Right,Bottom,Color):
         named_tuple = time.localtime()
         #Date = time.strftime("%Y%m%d", named_tuple)
         Time = time.strftime("%Y%m%d%H%M%S", named_tuple)
@@ -605,6 +625,21 @@ class App(customtkinter.CTk):
                     cv.imwrite('Record/' + Partnumber +'/OK/Point' + str(R + 1)+'/'+Time + '_P' + Point + str(R + 1) + '.jpg', self.ImageSave_R[R])
                 else:
                     cv.imwrite('Record/' + Partnumber +'/NG/Point' + str(R + 1)+'/'+Time + '_P' + Point + str(R + 1) + '.jpg', self.ImageSave_R[R])
+
+
+    def ShowResult(self,Partnumber):
+        if self.API.PartNumber_L == Partnumber:
+            for i in range(len(self.Result_L)):
+                if self.Result_L[i] == 1:
+                    if i == len(self.Result_L) - 1:
+                        self.CouterOK_Left = self.CouterOK_Left + 1
+                        self.OK_L.configure(text="OK : " + str(self.CouterOK_Left))
+                else:
+                    self.CouterNG_Left = self.CouterNG_Left + 1
+                    self.NG_L.configure(text="NG : " + str(self.CouterNG_Left))
+                    break
+        elif self.API.PartNumber_R == Partnumber:
+            pass
 
     def ViewImage_Snap(self, Partnumber):
         if Partnumber == self.API.PartNumber_L:
