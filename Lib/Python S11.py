@@ -53,7 +53,7 @@ class GetEmp:
 class GetAPI:
     def __init__(self):
         try:
-            with urllib.request.urlopen(API, timeout=3) as response:
+            with urllib.request.urlopen(API, timeout=1) as response:
                 json_API = json.loads(response.read())
             self.Sever = "Connected"
             with open('Part.json', 'w') as Keep_Part:
@@ -88,6 +88,75 @@ class GetImage:
         self.ExitImage = Image.open(r"Exit.PNG")
         self.ExitImage = self.ExitImage.resize((140, 55))
         self.ExitImage = ImageTk.PhotoImage(self.ExitImage)
+
+class Main:
+    @staticmethod
+    def Main(Partnumber ,FileImage,Counter,Mode,Left,Top,Right,Bottom,Score_Set,Color_Data):
+            Color = []
+            ImageSave = []
+            ColorView = []
+            Color_Save_Image = []
+            Result = []
+            Score = []
+            if Counter != 0:
+                for x in range(Counter):
+                    ImageSave.append(cv.imread(FileImage))
+                    Template = r"" + Partnumber + "\Master""\\""Point" + str(x + 1) + "_Template.bmp"
+                    (template, top_left, scale, val, w, h) = Shape.Process_Outline(FileImage, Template, Left[x], Top[x], Right[x], Bottom[x])
+                    Master_Image = CropImage.Crop_Image(FileImage, Left[x], Top[x], Right[x], Bottom[x], Mode[x])
+                    if scale == 1 and (val * 1000) >= Score_Set[x]:
+                        if Mode[x] == "Shape":
+                            Template_View = cv.imread(Template, 0)
+                            Score_Area_Data = Shape.Process_Area(Shape.Rule_Of_Thirds(Master_Image), Shape.Rule_Of_Thirds(Template_View))
+                            Score.append(Score_Area_Data)
+                            if Score_Area_Data >= Score_Set[x]:
+                                ColorView.append((0, 255, 0))
+                                Color_Save_Image.append((0, 255, 0))
+                                Result.append(1)
+                            else:
+                                ColorView.append((255, 0, 0))
+                                Color_Save_Image.append((0, 0, 255))
+                                Result.append(0)
+                        elif Mode[x] == "Color":
+                            Score_Color = Color.ColorScore(Color_Data[x], Color.ReadRBG(Master_Image))
+                            Score.append(Score_Color)
+                            if Score_Color >= Score_Set[x]:
+                                ColorView.append((0, 255, 0))
+                                Result.append(1)
+                                Color_Save_Image.append((0, 255, 0))
+                            else:
+                                ColorView.append((255, 0, 0))
+                                Result.append(0)
+                                Color_Save_Image.append((0, 0, 255))
+                    else:
+                        ColorView.append((255, 0, 0))
+                        Score.append(0)
+                        Result.append(0)
+                        Color_Save_Image.append((0, 0, 255))
+                return ImageSave, ColorView, Color_Save_Image, Result, Score
+
+    @staticmethod
+    def ViewImage_Snap(Filename,Counter,Left,Top,Right,Bottom,Score,Color):
+            image = cv.imread(Filename)
+            image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
+            for s in range(Counter):
+                cv.rectangle(image, (Left[s], Top[s]), (Right[s], Bottom[s]), Color[s], 2)
+                cv.putText(image, "P:" + str(s + 1) + " S:" + str(Score[s]), (Left[s], Top[s]), cv.FONT_HERSHEY_SIMPLEX, 0.7, Color[s], 2)
+            im = Image.fromarray(image)
+            im = im.resize((950, 520))
+            image = ImageTk.PhotoImage(image=im)
+            return image
+
+    @staticmethod
+    def ShowResult(Result):
+            for i in range(len(Result)):
+                if Result[i] == 1:
+                    if i == len(Result) - 1:
+                        return True
+                else:
+                    return False
+                    break
+
 
 
 class Shape:
@@ -244,6 +313,49 @@ class Save_Data:
                 else:
                     cv.imwrite('Record/' + Partnumber +'/NG/Point' + str(s + 1)+'/'+Time + '_P' + Point + str(s + 1) + '.jpg', Image[s])
 
+    @staticmethod
+    def Master(Left, Top, Right, Bottom, Score, Point, Emp_ID, Mode, Partnumber):
+        Score = int(Score)
+        image = r'Current.png'
+        Master_Image = CropImage.Crop_Image_Color(image, Left, Top, Right, Bottom)
+        try:
+            with open(Partnumber + '/' + Partnumber + '.json', 'r') as json_file:
+                item = json.loads(json_file.read())
+                for i in range(16):
+                    str_ = str(i)
+                    try:
+                        if Point == "Point" + str_:
+                            i = i - 1
+                            item[i]["Point" + str_][0]["Mode"] = Mode
+                            item[i]["Point" + str_][0]["Emp ID"] = Emp_ID
+                            item[i]["Point" + str_][0]["Left"] = Left
+                            item[i]["Point" + str_][0]["Top"] = Top
+                            item[i]["Point" + str_][0]["Right"] = Right
+                            item[i]["Point" + str_][0]["Bottom"] = Bottom
+                            item[i]["Point" + str_][0]["Score"] = Score
+                            item[i]["Point" + str_][0]["Color"] = Color.ReadRBG(Master_Image)
+                            with open(Partnumber + '/' + Partnumber + '.json', 'w') as json_file:
+                                json.dump(item, json_file, indent=6)
+                    except:
+                        # item.append({''+Point+'': [{"Camera": "",'Left': "",'Top': "","Right": "","Bottom": "",'Score': ""}]}
+                        with open(Partnumber + '/' + Partnumber + '.json', 'r') as json_file:
+                            item = json.loads(json_file.read())
+                        try:
+                            logging.debug(item[i - 1])
+                            item.append({'' + Point + '': [
+                                {"Emp ID": Emp_ID, "Mode": Mode, 'Left': Left, 'Top': Top, "Right": Right, "Bottom": Bottom, 'Score': Score, 'Color': Color.ReadRBG(Master_Image)}]})
+                            with open(Partnumber + '/' + Partnumber + '.json', 'w') as json_file:
+                                json.dump(item, json_file, indent=6)
+                        except:
+                            pass
+        except FileNotFoundError as exc:
+            if Point == "Point1":
+                item = [
+                    {'' + Point + '': [
+                        {"Emp ID": Emp_ID, "Mode": Mode, 'Left': Left, 'Top': Top, "Right": Right, "Bottom": Bottom, 'Score': Score, 'Color': Color.ReadRBG(Master_Image)}]}]
+                with open(Partnumber + '/' + Partnumber + '.json', 'w') as json_file:
+                    json.dump(item, json_file, indent=6)
+
 
 
 class App(customtkinter.CTk):
@@ -274,20 +386,21 @@ class App(customtkinter.CTk):
         self.AddMaster()
         customtkinter.CTkLabel(master=self, text="Vision Inspection", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=50, weight="bold"), corner_radius=10).place(x=140, y=10)
         customtkinter.CTkLabel(master=self, text="v 1.0.0", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=15, weight="bold"), corner_radius=10).place(x=490, y=10)
-        self.ImageReal_Left = tk.Button(self, bg="White", command=lambda: self.ViewImagePart(self.API.PartNumber_L))
+        #command=lambda: self.ViewImagePart(self.API.PartNumber_L)
+        self.ImageReal_Left = customtkinter.CTkLabel(master=self,text="")
         self.ImageReal_Left.place(x=0, y=280)
-        self.ImageReal_Right = tk.Button(self, bg="White", command=lambda: self.ViewImagePart(self.API.PartNumber_R))
+        #command=lambda: self.ViewImagePart(self.API.PartNumber_R)
+        self.ImageReal_Right = customtkinter.CTkLabel(master=self,text="")
         self.ImageReal_Right.place(x=960, y=280)
         self.image_logo = tk.Button(self, bg="#232323", image=self.Image_logo.BKFImage, command=self.Destory, bd=0)
         self.image_logo.place(x=1755, y=10)
         self.image_logo.bind("<Enter>", self.on_enter)
         self.image_logo.bind("<Leave>", self.on_leave)
         self.Camera()
-        # self.scaling_optionemenu = customtkinter.CTkOptionMenu(master=self, values=["80%", "90%", "100%", "110%", "120%"], command=self.change_scaling_event)
-        # self.scaling_optionemenu.place(x=1000, y=80)
+        self.scaling_optionemenu = customtkinter.CTkOptionMenu(master=self, values=["50%", "60%", "70%","80%", "90%", "100%", "110%", "120%"], command=self.change_scaling_event)
+        self.scaling_optionemenu.place(x=1000, y=80)
         customtkinter.CTkButton(master=self, text="Reorder", text_color="#00B400", hover_color="#B4F0B4", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=("#353535"),
                                 command=lambda: [self.ReadFile(), self.ReadFileScore(), self.View()]).place(x=1570, y=10)
-
     def ViewImagePart(self, Partnumber):
         try:
             View = r"Image_Partnumber/" + Partnumber + ".png"
@@ -424,9 +537,10 @@ class App(customtkinter.CTk):
         customtkinter.CTkLabel(master=self, text=self.API.BatchNumber_R, text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), fg_color=("#00B400"), corner_radius=10).place(x=1100, y=180)
         customtkinter.CTkLabel(master=self, text="Part Name :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold")).place(x=960, y=220)
         customtkinter.CTkLabel(master=self, text=self.API.PartName_R[:30], text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), fg_color=("#00B400"), corner_radius=10).place(x=1100, y=220)
-        customtkinter.CTkButton(master=self, text="NG : " + str(self.CouterNG_Left), text_color="#FFFFFF", hover_color="#C80000", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=50, weight="bold"), corner_radius=10, fg_color=("#FF0000"), command=lambda: self.ViewNG("NG_Right")).place(
-            x=1590, y=180)
-        customtkinter.CTkLabel(master=self, text="OK : " + str(self.CouterOK_Left), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=52, weight="bold"), corner_radius=10, fg_color=("#00B400")).place(x=1590, y=100)
+        self.NG_R = customtkinter.CTkButton(master=self, text="NG : " + str(self.CouterNG_Left), text_color="#FFFFFF", hover_color="#C80000", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=50, weight="bold"), corner_radius=10, fg_color=("#FF0000"), command=lambda: self.ViewNG("NG_Right"))
+        self.NG_R.place(x=1590, y=180)
+        self.OK_R = customtkinter.CTkLabel(master=self, text="OK : " + str(self.CouterOK_Left), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=52, weight="bold"), corner_radius=10, fg_color=("#00B400"))
+        self.OK_R.place(x=1590, y=100)
         customtkinter.CTkLabel(master=self, text="Packing :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), corner_radius=10).place(x=1360, y=100)
         customtkinter.CTkLabel(master=self, text=str(self.CouterPacking_Left) + "/" + str(self.API.Packing_R), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), corner_radius=10, fg_color=("#00B400")).place(x=1490, y=100)
         # ,command=lambda :self.ViewNG_RealTime()
@@ -480,121 +594,40 @@ class App(customtkinter.CTk):
         if x == 1:
             if self.CouterPoint_Left != 0:
                 self.Run_Left = True
-                Filename = "Current_Left"
-                cv.imwrite(Filename+'.png', frame0.read()[1])
-                Color,ImageSave,ColorView,Color_Save_Image,Result,Score = self.Main(Partnumber,Filename,Counter,self.Point_Mode_L,self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L,self.Point_Score_L)
-                print(Color,ImageSave,ColorView,Color_Save_Image,Result,Score)
-                #self.ViewImage_Snap(Partnumber)
-                #Save_Data.Save_Image(GetAPI().PartNumber_L,self.CouterPoint_Left,self.ImageSave_L,self.Point_Mode_L,self.Point_Left_L,self.Point_Top_L,self.Point_Right_L,self.Point_Bottom_L,self.Color_Save_Image_L,self.Score_L,self.Point_Score_L,self.Result_L)
-                #self.Save_Image(Partnumber)
-                #self.ShowResult(Partnumber)
-                #Save_Data.Save_Score(GetAPI().PartNumber_L, GetAPI().BatchNumber_L, GetAPI().MachineName_L,self.CouterPoint_Left,self.Score_L,self.Result_L)
-                #def Save_Image(Partnumber, Counter, Image, Mode, Left, Top, Right, Bottom, Color, Score, Score_Set, Result):
+                Filename = "Current_Left.png"
+                cv.imwrite(Filename, frame0.read()[1])
+                ImageSave, ColorView, Color_Save_Image, Result, Score = Main.Main(GetAPI().PartNumber_L,Filename,self.CouterPoint_Left,self.Point_Mode_L,self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L,self.Point_Score_L,self.Point_Color_L)
+                image = Main.ViewImage_Snap(Filename, self.CouterPoint_Left,self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L, Score, ColorView)
+                Save_Data.Save_Image(GetAPI().PartNumber_L,self.CouterPoint_Left,ImageSave,self.Point_Mode_L,self.Point_Left_L,self.Point_Top_L,self.Point_Right_L,self.Point_Bottom_L,Color_Save_Image,Score,self.Point_Score_L,Result)
+                Save_Data.Save_Score(GetAPI().PartNumber_L, GetAPI().BatchNumber_L, GetAPI().MachineName_L,self.CouterPoint_Left,Score,Result)
+                Data = Main.ShowResult(Result)
+                if Data is True:
+                    self.CouterOK_Left = self.CouterOK_Left + 1
+                    self.OK_L.configure(text="NG : " + str(self.CouterOK_Left))
+                elif Data is False:
+                    self.CouterNG_Left = self.CouterNG_Left + 1
+                    self.NG_L.configure(text="NG : " + str(self.CouterNG_Left))
+                self.ImageReal_Left.imgtk = image
+                self.ImageReal_Left.configure(image=image)
+
         elif x == 2:
             if self.CouterPoint_Right != 0:
                 self.Run_Right = True
-                Partnumber = self.API.PartNumber_R
-                Imagesave = Image.fromarray(self.Camera_Right)
-                Imagesave.save("Current_Right.png")
-                self.Main(Partnumber)
-                self.ViewImage_Snap(Partnumber)
-                self.Save_Image(Partnumber)
-                Save_Data.Save_Score(GetAPI().PartNumber_R, GetAPI().BatchNumber_R, GetAPI().MachineName_R, self.CouterPoint_Right, self.Score_R, self.Result_R)
-
-    def Main(self, Partnumber,Image_Side,Counter,Left,Top,Right,Bottom,Score_Set,Mode,Color_Data):
-            Color = []
-            ImageSave = []
-            ColorView = []
-            Color_Save_Image = []
-            Result = []
-            Score = []
-            image = Image_Side+'.png'
-            if Counter != 0:
-                for x in range(Counter):
-                    #image = r'Current_Left.png'
-                    ImageSave.append(cv.imread(image))
-                    Template = r"" + Partnumber + "\Master""\\""Point" + str(x + 1) + "_Template.bmp"
-                    (template, top_left, scale, val, w, h) = Shape.Process_Outline(image, Template, Left[x], Top[x], Right[x], Bottom[x])
-                    Master_Image = CropImage.Crop_Image(image, Left[x], Top[x], Right[x], Bottom[x], Mode[x])
-                    if scale == 1 and (val * 1000) >= Score_Set[x]:
-                        if Mode[x] == "Shape":
-                            Template_View = cv.imread(Template, 0)
-                            Score_Area_Data = Shape.Process_Area(Shape.Rule_Of_Thirds(Master_Image), Shape.Rule_Of_Thirds(Template_View))
-                            Score.append(Score_Area_Data)
-                            if Score_Area_Data >= Score_Set[x]:
-                                color = "Green"
-                                ColorView.append((0, 255, 0))
-                                Color_Save_Image.append((0, 255, 0))
-                                Result.append(1)
-                            else:
-                                color = "Red"
-                                ColorView.append((255, 0, 0))
-                                Color_Save_Image.append((0, 0, 255))
-                                Result.append(0)
-                        elif Mode[x] == "Color":
-                            Score_Color = Color.ColorScore(Color_Data[x], Color.ReadRBG(Master_Image))
-                            Score.append(Score_Color)
-                            if Score_Color >= Score_Set[x]:
-                                color = "Green"
-                                ColorView.append((0, 255, 0))
-                                Result.append(1)
-                                Color_Save_Image.append((0, 255, 0))
-                            else:
-                                color = "Red"
-                                ColorView.append((255, 0, 0))
-                                Result.append(0)
-                                Color_Save_Image.append((0, 0, 255))
-                    else:
-                        color = "Red"
-                        ColorView.append((255, 0, 0))
-                        Score.append(0)
-                        Result.append(0)
-                        Color_Save_Image.append((0, 0, 255))
-            return Color,ImageSave,ColorView,Color_Save_Image,Result,Score
-
-
-
-
-
-
-
-    def ShowResult(self,Partnumber):
-        if self.API.PartNumber_L == Partnumber:
-            for i in range(len(self.Result_L)):
-                if self.Result_L[i] == 1:
-                    if i == len(self.Result_L) - 1:
-                        self.CouterOK_Left = self.CouterOK_Left + 1
-                        self.OK_L.configure(text="OK : " + str(self.CouterOK_Left))
-                else:
-                    self.CouterNG_Left = self.CouterNG_Left + 1
-                    self.NG_L.configure(text="NG : " + str(self.CouterNG_Left))
-                    break
-        elif self.API.PartNumber_R == Partnumber:
-            pass
-
-    def ViewImage_Snap(self, Partnumber):
-        if Partnumber == self.API.PartNumber_L:
-            image = cv.imread("Current_Left.png")
-            image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
-            for s in range(self.CouterPoint_Left):
-                cv.rectangle(image, (self.Point_Left_L[s], self.Point_Top_L[s]), (self.Point_Right_L[s], self.Point_Bottom_L[s]), self.ColorView_L[s], 2)
-                cv.putText(image, "P:" + str(s + 1) + " S:" + str(self.Score_L[s]), (self.Point_Left_L[s], self.Point_Top_L[s]), cv.FONT_HERSHEY_SIMPLEX, 0.7, self.ColorView_L[s], 2)
-            im = Image.fromarray(image)
-            im = im.resize((950, 520))
-            image = ImageTk.PhotoImage(image=im)
-            self.ImageReal_Left.imgtk = image
-            self.ImageReal_Left.configure(image=image)
-        elif Partnumber == self.API.PartNumber_R:
-            image = cv.imread("Current_Right.png")
-            image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
-            for s in range(self.CouterPoint_Right):
-                cv.rectangle(image, (self.Point_Left_R[s], self.Point_Top_R[s]), (self.Point_Right_R[s], self.Point_Bottom_R[s]), self.ColorView_R[s], 2)
-                cv.putText(image, "P:" + str(s + 1) + " S:" + str(self.Score_R[s]), (self.Point_Left_R[s], self.Point_Top_R[s]), cv.FONT_HERSHEY_SIMPLEX, 0.7, self.ColorView_R[s], 2)
-            im = Image.fromarray(image)
-            im = im.resize((950, 520))
-            image = ImageTk.PhotoImage(image=im)
-            self.ImageReal_Right.imgtk = image
-            self.ImageReal_Right.configure(image=image)
+                Filename = "Current_Right.png"
+                cv.imwrite(Filename, frame1.read()[1])
+                ImageSave, ColorView, Color_Save_Image, Result, Score = Main.Main(GetAPI().PartNumber_R,Filename,self.CouterPoint_Right,self.Point_Mode_R,self.Point_Left_R, self.Point_Top_R, self.Point_Right_R, self.Point_Bottom_R,self.Point_Score_R,self.Point_Color_R)
+                image = Main.ViewImage_Snap(Filename, self.CouterPoint_Right, self.Point_Left_R, self.Point_Top_R, self.Point_Right_R, self.Point_Bottom_R, Score, ColorView)
+                Save_Data.Save_Image(GetAPI().PartNumber_R,self.CouterPoint_Right,ImageSave,self.Point_Mode_R,self.Point_Left_R,self.Point_Top_R,self.Point_Right_R,self.Point_Bottom_R,Color_Save_Image,Score,self.Point_Score_R,Result)
+                Save_Data.Save_Score(GetAPI().PartNumber_R, GetAPI().BatchNumber_R, GetAPI().MachineName_R,self.CouterPoint_Right,Score,Result)
+                Data = Main.ShowResult(Result)
+                if Data is True:
+                    self.CouterOK_Right = self.CouterOK_Right + 1
+                    self.OK_R.configure(text="NG : " + str(self.CouterOK_Right))
+                elif Data is False:
+                    self.CouterNG_Right = self.CouterNG_Right + 1
+                    self.NG_R.configure(text="NG : " + str(self.CouterNG_Right))
+                self.ImageReal_Right.imgtk = image
+                self.ImageReal_Right.configure(image=image)
 
     def on_enter(self, event):
         self.image_logo.configure(image=self.Image_logo.ExitImage)
@@ -710,7 +743,7 @@ class App(customtkinter.CTk):
                                     cv.imshow(Point, Showtext)
                                     img.save('' + Create + '/' + Point + '_Template.bmp')
                                     if Left and Top and Right and Bottom != 0:
-                                        self.Master(Left, Top, Right, Bottom, Score, Point, Emp_ID, Mode, Partnumber)
+                                        Save_Data.Master(Left, Top, Right, Bottom, Score, Point, Emp_ID, Mode, Partnumber)
 
                         path = r'Current.png'
                         image = cv.imread(path)
@@ -775,51 +808,13 @@ class App(customtkinter.CTk):
         customtkinter.CTkButton(Login, text="Login", text_color="#00B400", hover_color="#B4F0B4", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=30, weight="bold"), corner_radius=10, fg_color=("#353535"), command=Search).place(x=40, y=70)
         Login.mainloop()
 
-    def change_scaling_event(self, new_scaling: str):
-        new_scaling_float = int(new_scaling.replace("%", "")) / 100
+    def change_scaling_event(self):
+        print(self.scaling_optionemenu.get())
+        new_scaling_float = int(self.scaling_optionemenu.get().replace("%", "")) / 100
         customtkinter.set_widget_scaling(new_scaling_float)
+        return new_scaling
+    print(change_scaling_event)
 
-    def Master(self, Left, Top, Right, Bottom, Score, Point, Emp_ID, Mode, Partnumber):
-        Score = int(Score)
-        image = r'Current.png'
-        Master_Image = CropImage.Crop_Image_Color(image, Left, Top, Right, Bottom)
-        try:
-            with open(Partnumber + '/' + Partnumber + '.json', 'r') as json_file:
-                item = json.loads(json_file.read())
-                for i in range(16):
-                    str_ = str(i)
-                    try:
-                        if Point == "Point" + str_:
-                            i = i - 1
-                            item[i]["Point" + str_][0]["Mode"] = Mode
-                            item[i]["Point" + str_][0]["Emp ID"] = Emp_ID
-                            item[i]["Point" + str_][0]["Left"] = Left
-                            item[i]["Point" + str_][0]["Top"] = Top
-                            item[i]["Point" + str_][0]["Right"] = Right
-                            item[i]["Point" + str_][0]["Bottom"] = Bottom
-                            item[i]["Point" + str_][0]["Score"] = Score
-                            item[i]["Point" + str_][0]["Color"] = Color.ReadRBG(Master_Image)
-                            with open(Partnumber + '/' + Partnumber + '.json', 'w') as json_file:
-                                json.dump(item, json_file, indent=6)
-                    except:
-                        # item.append({''+Point+'': [{"Camera": "",'Left': "",'Top': "","Right": "","Bottom": "",'Score': ""}]}
-                        with open(Partnumber + '/' + Partnumber + '.json', 'r') as json_file:
-                            item = json.loads(json_file.read())
-                        try:
-                            logging.debug(item[i - 1])
-                            item.append({'' + Point + '': [
-                                {"Emp ID": Emp_ID, "Mode": Mode, 'Left': Left, 'Top': Top, "Right": Right, "Bottom": Bottom, 'Score': Score, 'Color': Color.ReadRBG(Master_Image)}]})
-                            with open(Partnumber + '/' + Partnumber + '.json', 'w') as json_file:
-                                json.dump(item, json_file, indent=6)
-                        except:
-                            pass
-        except FileNotFoundError as exc:
-            if Point == "Point1":
-                item = [
-                    {'' + Point + '': [
-                        {"Emp ID": Emp_ID, "Mode": Mode, 'Left': Left, 'Top': Top, "Right": Right, "Bottom": Bottom, 'Score': Score, 'Color': Color.ReadRBG(Master_Image)}]}]
-                with open(Partnumber + '/' + Partnumber + '.json', 'w') as json_file:
-                    json.dump(item, json_file, indent=6)
 
 
 if __name__ == "__main__":
