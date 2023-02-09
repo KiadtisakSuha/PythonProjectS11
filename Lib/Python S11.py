@@ -367,6 +367,14 @@ class Packing:
                     json.dump(item, json_file, indent=6)
         except:
             pass
+    @staticmethod
+    def Read_Priter(Partnumber):
+        try:
+            with open(Partnumber + '\Couter_Printer.json', 'r') as json_file:
+                Data = json.loads(json_file.read())
+            return  Data["Counter"]
+        except:
+            return 0
 
     @staticmethod
     def Couter_Printer(Partnumber,Packing):
@@ -382,8 +390,8 @@ class Packing:
             Printer = {"Partnumber": Partnumber, "Counter": Packing_Couter + 1, "Packing": Packing}
             with open(Partnumber+'\Couter_Printer.json', 'w') as json_file:
                 json.dump(Printer, json_file, indent=6)
-            if (Packing-1) == Packing_Couter:
-                Printer = {"Partnumber": Partnumber, "Counter": 0, "Packing": Packing}
+            if Packing == Packing_Couter:
+                Printer = {"Partnumber": Partnumber, "Counter": 1, "Packing": Packing}
                 with open(Partnumber+'\Couter_Printer.json', 'w') as json_file:
                     json.dump(Printer, json_file, indent=6)
                 with open('Printer.txt', 'w') as f:
@@ -399,7 +407,7 @@ class App(customtkinter.CTk):
         self.geometry("1920x1020+0+0")
         # self.state('zoomed')
         self.attributes('-fullscreen', True)
-        self.CouterPacking_Left = 0
+        self.CouterPacking_Left = Packing.Read_Priter(GetAPI().PartNumber_L)
         self.CouterPacking_Right = 0
         self.CouterOK_Left = 0
         self.CouterNG_Left = 0
@@ -560,8 +568,8 @@ class App(customtkinter.CTk):
         self.OK_L = customtkinter.CTkLabel(master=self, text="OK : " + str(self.CouterOK_Left), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=52, weight="bold"), corner_radius=10, fg_color=("#00B400"))
         self.OK_L.place(x=620, y=100)
         customtkinter.CTkLabel(master=self, text="Packing :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), corner_radius=10).place(x=400, y=100)
-        customtkinter.CTkLabel(master=self, text=str(self.CouterPacking_Left) + "/" + str(self.API.Packing_L), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), corner_radius=10, fg_color=("#00B400")).place(x=530, y=100)
-
+        self.Packing_L = customtkinter.CTkLabel(master=self, text=str(self.CouterPacking_Left) + "/" + str(self.API.Packing_L), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), corner_radius=10, fg_color=("#00B400"))
+        self.Packing_L.place(x=530, y=100)
         # Right
         customtkinter.CTkLabel(master=self, text="BKF Part :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold")).place(x=960, y=100)
         customtkinter.CTkLabel(master=self, text=self.API.PartNumber_R, text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), fg_color=("#00B400"), corner_radius=10).place(x=1100, y=100)
@@ -576,7 +584,8 @@ class App(customtkinter.CTk):
         self.OK_R = customtkinter.CTkLabel(master=self, text="OK : " + str(self.CouterOK_Left), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=52, weight="bold"), corner_radius=10, fg_color=("#00B400"))
         self.OK_R.place(x=1590, y=100)
         customtkinter.CTkLabel(master=self, text="Packing :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), corner_radius=10).place(x=1360, y=100)
-        customtkinter.CTkLabel(master=self, text=str(self.CouterPacking_Left) + "/" + str(self.API.Packing_R), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), corner_radius=10, fg_color=("#00B400")).place(x=1490, y=100)
+        self.Packing_R = customtkinter.CTkLabel(master=self, text=str(self.CouterPacking_Left) + "/" + str(self.API.Packing_R), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), corner_radius=10, fg_color=("#00B400"))
+        self.Packing_R.place(x=1490, y=100)
         # ,command=lambda :self.ViewNG_RealTime()
         for Point_Left in range(self.CouterPoint_Left):
             if Point_Left <= 4:
@@ -631,6 +640,8 @@ class App(customtkinter.CTk):
                     self.CouterOK_Left = self.CouterOK_Left + 1
                     self.OK_L.configure(text="NG : " + str(self.CouterOK_Left))
                     Packing.Couter_Printer(GetAPI().PartNumber_L,GetAPI().Packing_L)
+                    CouterPacking = Packing.Read_Priter(GetAPI().PartNumber_L)
+                    self.Packing_L.configure(text=str(CouterPacking) + "/" + str(GetAPI().Packing_L))
                 elif Data is False:
                     self.CouterNG_Left = self.CouterNG_Left + 1
                     self.NG_L.configure(text="NG : " + str(self.CouterNG_Left))
@@ -656,19 +667,7 @@ class App(customtkinter.CTk):
                 self.ImageReal_Right.imgtk = image
                 self.ImageReal_Right.configure(image=image)
 
-    def PrintText(self):
-        with open('Couter_Printer.json', 'r') as json_file:
-            Data = json.loads(json_file.read())
-        Packing_Couter = Data["Couter"]
-        PackPart = Data["Partnumber"]
-        self.PACKING_NUMBER = tk.LabelFrame(self, text="PACKING",bg='black')
-        self.PACKING_NUMBER.configure(font=("Arial", 10))
-        self.PACKING_NUMBER.configure(fg='Green')
-        self.PACKING_NUMBER.place(x=720, y=220, height=60, width=225)
-        self.PACKING_NUMBERP = tk.Label(self.PACKING_NUMBER, text=str(Packing_Couter) + "/" + str(self.Packing_API),bg='black')
-        self.PACKING_NUMBERP.configure(font=("Arial", 22))
-        self.PACKING_NUMBERP.configure(fg='Green')
-        self.PACKING_NUMBERP.place(x=10, y=15, anchor=tk.W)
+
 
 
 
@@ -690,9 +689,10 @@ class App(customtkinter.CTk):
         Right = Image.fromarray(self.Camera_Right)
         Resize_Right = Right.resize((950, 520))
         self.RightCommit = ImageTk.PhotoImage(image=Resize_Right)
-        if self.Run_Left == False and self.Run_Right == False:
+        if self.Run_Left == False:
             self.ImageReal_Left.imgtk = self.LeftCommit
             self.ImageReal_Left.configure(image=self.LeftCommit)
+        if self.Run_Right == False:
             self.ImageReal_Right.imgtk = self.RightCommit
             self.ImageReal_Right.configure(image=self.RightCommit)
         self.after(20, self.Camera)
