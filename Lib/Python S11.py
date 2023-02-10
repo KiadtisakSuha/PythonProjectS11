@@ -15,8 +15,9 @@ from threading import Timer
 import logging
 from tkinter import messagebox
 import customtkinter
+import socket
 
-API = "https://api.bkf.co.th/APIGateway_DB_BKF/GetCurrentMachineStatus?machineNickName=S11"
+API = "https://api.bkf.co.th/APIGateway_DB_BKF/GetCurrentMachineStatus?machineNickName=E15"
 
 font = "arial"
 Camera_Qutity = 2
@@ -88,6 +89,39 @@ class GetImage:
         self.ExitImage = Image.open(r"Exit.PNG")
         self.ExitImage = self.ExitImage.resize((140, 55))
         self.ExitImage = ImageTk.PhotoImage(self.ExitImage)
+
+class InfiniteTimer():
+    def __init__(self, seconds, target):
+        self._should_continue = False
+        self.is_running = False
+        self.seconds = seconds
+        self.target = target
+        self.thread = None
+
+    def _handle_target(self):
+        self.is_running = True
+        self.target()
+        self.is_running = False
+        self._start_timer()
+
+    def _start_timer(self):
+        if self._should_continue:
+            self.thread = Timer(self.seconds, self._handle_target)
+            self.thread.start()
+
+    def start(self):
+        if not self._should_continue and not self.is_running:
+            self._should_continue = True
+            self._start_timer()
+        else:
+            pass
+
+    def cancel(self):
+        if self.thread is not None:
+            self._should_continue = False
+            self.thread.cancel()
+        else:
+            pass
 
 class Main:
     @staticmethod
@@ -380,18 +414,18 @@ class Packing:
     def Couter_Printer(Partnumber,Packing):
         with open(Partnumber+'\Couter_Printer.json', 'r') as json_file:
             Data = json.loads(json_file.read())
-        Packing_Couter = Data["Counter"]
+        Packing_Couter = Data["Counter"]+1
         PackPart = Data["Partnumber"]
         if PackPart != Partnumber:
             Printer = {"Partnumber": Partnumber, "Counter": 1, "Packing": Packing}
             with open(Partnumber+'\Couter_Printer.json', 'w') as json_file:
                 json.dump(Printer, json_file, indent=6)
         else:
-            Printer = {"Partnumber": Partnumber, "Counter": Packing_Couter + 1, "Packing": Packing}
+            Printer = {"Partnumber": Partnumber, "Counter": Packing_Couter, "Packing": Packing}
             with open(Partnumber+'\Couter_Printer.json', 'w') as json_file:
                 json.dump(Printer, json_file, indent=6)
             if Packing == Packing_Couter:
-                Printer = {"Partnumber": Partnumber, "Counter": 1, "Packing": Packing}
+                Printer = {"Partnumber": Partnumber, "Counter": 0, "Packing": Packing}
                 with open(Partnumber+'\Couter_Printer.json', 'w') as json_file:
                     json.dump(Printer, json_file, indent=6)
                 with open('Printer.txt', 'w') as f:
@@ -408,7 +442,7 @@ class App(customtkinter.CTk):
         # self.state('zoomed')
         self.attributes('-fullscreen', True)
         self.CouterPacking_Left = Packing.Read_Priter(GetAPI().PartNumber_L)
-        self.CouterPacking_Right = 0
+        self.CouterPacking_Right = Packing.Read_Priter(GetAPI().PartNumber_R)
         self.CouterOK_Left = 0
         self.CouterNG_Left = 0
         self.CouterOK_Right = 0
@@ -416,7 +450,18 @@ class App(customtkinter.CTk):
         self.Run_Left = False
         self.Run_Right = False
         self.Image_logo = GetImage()
+        host = "192.168.128.99"
+        port = 10000
+        self.client_socket = socket.socket()
+        self.client_socket.connect((host, port))
+        self.Ready = False
 
+        #self.message = "Vision Ready"
+
+
+        self.Loop = InfiniteTimer(0.1, self.client_program)
+        self.Loop.start()
+        self.Keepdata = ""
 
         self.ReadFile()
         self.ReadFileScore()
@@ -424,6 +469,7 @@ class App(customtkinter.CTk):
         self.TCP()
         # self.Reorder()
         self.AddMaster()
+
         customtkinter.CTkLabel(master=self, text="Vision Inspection", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=50, weight="bold"), corner_radius=10).place(x=140, y=10)
         customtkinter.CTkLabel(master=self, text="v 1.0.0", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=15, weight="bold"), corner_radius=10).place(x=490, y=10)
         self.ImageReal_Left = tk.Button(self, bg="White", command=lambda: self.ViewImagePart(self.API.PartNumber_L))
@@ -584,7 +630,7 @@ class App(customtkinter.CTk):
         self.OK_R = customtkinter.CTkLabel(master=self, text="OK : " + str(self.CouterOK_Left), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=52, weight="bold"), corner_radius=10, fg_color=("#00B400"))
         self.OK_R.place(x=1590, y=100)
         customtkinter.CTkLabel(master=self, text="Packing :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), corner_radius=10).place(x=1360, y=100)
-        self.Packing_R = customtkinter.CTkLabel(master=self, text=str(self.CouterPacking_Left) + "/" + str(self.API.Packing_R), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), corner_radius=10, fg_color=("#00B400"))
+        self.Packing_R = customtkinter.CTkLabel(master=self, text=str(self.CouterPacking_Right) + "/" + str(self.API.Packing_R), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), corner_radius=10, fg_color=("#00B400"))
         self.Packing_R.place(x=1490, y=100)
         # ,command=lambda :self.ViewNG_RealTime()
         for Point_Left in range(self.CouterPoint_Left):
@@ -602,9 +648,8 @@ class App(customtkinter.CTk):
             elif Point_Right <= 15:
                 LablePoint_Right = customtkinter.CTkLabel(master=self, text="Point:" + str(Point_Right + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=("#A9A9A9")).place(x=960 + ((Point_Right - 10) * 190), y=1010)
         # customtkinter.CTkLabel(master=self, text="Point:1", text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=("red")).place(x=0, y=850)
-
-        customtkinter.CTkButton(master=self, text="Test Left", text_color="#FFFFFF", hover_color="#C80000", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=20, weight="bold"), corner_radius=10, fg_color=("#FF0000"), command=lambda: self.Processing(1)).place(x=1000, y=20)
-        customtkinter.CTkButton(master=self, text="Test Right", text_color="#FFFFFF", hover_color="#C80000", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=20, weight="bold"), corner_radius=10, fg_color=("#FF0000"), command=lambda: self.Processing(2)).place(x=1150, y=20)
+        #customtkinter.CTkButton(master=self, text="Test Left", text_color="#FFFFFF", hover_color="#C80000", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=20, weight="bold"), corner_radius=10, fg_color=("#FF0000"), command=lambda: self.Processing(1)).place(x=1000, y=20)
+        #customtkinter.CTkButton(master=self, text="Test Right", text_color="#FFFFFF", hover_color="#C80000", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=20, weight="bold"), corner_radius=10, fg_color=("#FF0000"), command=lambda: self.Processing(2)).place(x=1150, y=20)
 
     def ViewNG(self, Side):
         ViewNG = Toplevel(self)
@@ -625,30 +670,35 @@ class App(customtkinter.CTk):
         ViewNG.geometry('220x120')
 
 
-    def Processing(self, x):
-        if x == 1:
+    def Processing(self):
+        if self.data == "Left":
             if self.CouterPoint_Left != 0:
                 self.Run_Left = True
                 Filename = "Current_Left.png"
                 cv.imwrite(Filename, frame0.read()[1])
                 ImageSave, ColorView, Color_Save_Image, Result, Score = Main.Main(GetAPI().PartNumber_L,Filename,self.CouterPoint_Left,self.Point_Mode_L,self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L,self.Point_Score_L,self.Point_Color_L)
+                #self.Ready = True
                 image = Main.ViewImage_Snap(Filename, self.CouterPoint_Left,self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L, Score, ColorView)
                 Save_Data.Save_Image(GetAPI().PartNumber_L,self.CouterPoint_Left,ImageSave,self.Point_Mode_L,self.Point_Left_L,self.Point_Top_L,self.Point_Right_L,self.Point_Bottom_L,Color_Save_Image,Score,self.Point_Score_L,Result)
                 Save_Data.Save_Score(GetAPI().PartNumber_L, GetAPI().BatchNumber_L, GetAPI().MachineName_L,self.CouterPoint_Left,Score,Result)
                 Data = Main.ShowResult(Result)
                 if Data is True:
+                    self.message = "OK"
                     self.CouterOK_Left = self.CouterOK_Left + 1
                     self.OK_L.configure(text="NG : " + str(self.CouterOK_Left))
                     Packing.Couter_Printer(GetAPI().PartNumber_L,GetAPI().Packing_L)
                     CouterPacking = Packing.Read_Priter(GetAPI().PartNumber_L)
                     self.Packing_L.configure(text=str(CouterPacking) + "/" + str(GetAPI().Packing_L))
                 elif Data is False:
+                    self.message = "NG"
                     self.CouterNG_Left = self.CouterNG_Left + 1
                     self.NG_L.configure(text="NG : " + str(self.CouterNG_Left))
                 self.ImageReal_Left.imgtk = image
                 self.ImageReal_Left.configure(image=image)
+                #self.Ready = False
+                #self.client_socket.send(self.message.encode())
 
-        elif x == 2:
+        elif self.data == "Right":
             if self.CouterPoint_Right != 0:
                 self.Run_Right = True
                 Filename = "Current_Right.png"
@@ -659,17 +709,42 @@ class App(customtkinter.CTk):
                 Save_Data.Save_Score(GetAPI().PartNumber_R, GetAPI().BatchNumber_R, GetAPI().MachineName_R,self.CouterPoint_Right,Score,Result)
                 Data = Main.ShowResult(Result)
                 if Data is True:
+                    self.message = "OK"
                     self.CouterOK_Right = self.CouterOK_Right + 1
                     self.OK_R.configure(text="NG : " + str(self.CouterOK_Right))
+                    Packing.Couter_Printer(GetAPI().PartNumber_R, GetAPI().Packing_R)
+                    CouterPacking = Packing.Read_Priter(GetAPI().PartNumber_R)
+                    self.Packing_R.configure(text=str(CouterPacking) + "/" + str(GetAPI().Packing_R))
                 elif Data is False:
+                    self.message = "NG"
                     self.CouterNG_Right = self.CouterNG_Right + 1
                     self.NG_R.configure(text="NG : " + str(self.CouterNG_Right))
                 self.ImageReal_Right.imgtk = image
                 self.ImageReal_Right.configure(image=image)
+                #self.client_socket.send(self.message.encode())
+        #self.after(1000,self.Processing)
 
-
-
-
+    def client_program(self):
+        self.data = self.client_socket.recv(128).decode()
+        if self.data != self.Keepdata:
+            if self.data == "Vision":
+                self.message = "OK"
+            elif self.data == "PartnumberR":
+                self.message = GetAPI().PartNumber_R
+            elif self.data == "PartnumberL":
+                self.message = GetAPI().PartNumber_L
+            elif self.data == "Left":
+                self.Processing()
+            elif self.data == "Right":
+                self.Processing()
+            #else:
+                #self.message = "NoOrder"
+        elif self.data == self.Keepdata:
+            self.message = "Wait"
+        self.Keepdata = self.data
+        self.client_socket.send(self.message.encode())
+        self.message = ""
+        #self.after(5000,self.client_program)
 
     def on_enter(self, event):
         self.image_logo.configure(image=self.Image_logo.ExitImage)
