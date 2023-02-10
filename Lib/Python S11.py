@@ -17,7 +17,7 @@ from tkinter import messagebox
 import customtkinter
 import socket
 
-API = "https://api.bkf.co.th/APIGateway_DB_BKF/GetCurrentMachineStatus?machineNickName=E15"
+API = "https://api.bkf.co.th/APIGateway_DB_BKF/GetCurrentMachineStatus?machineNickName=S11"
 
 font = "arial"
 Camera_Qutity = 2
