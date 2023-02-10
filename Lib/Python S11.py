@@ -450,7 +450,7 @@ class App(customtkinter.CTk):
         self.Run_Left = False
         self.Run_Right = False
         self.Image_logo = GetImage()
-        host = "192.168.128.99"
+        host = socket.gethostname()
         port = 10000
         self.client_socket = socket.socket()
         self.client_socket.connect((host, port))
