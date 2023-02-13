@@ -698,7 +698,18 @@ class App(customtkinter.CTk):
             self.CouterPacking_Left = Packing.Read_Priter(self.PartNumber_L)
             self.CouterPacking_Right = Packing.Read_Priter(self.PartNumber_R)
 
-
+            self.BKF_Part_S_Lable.place_forget()
+            self.PartNumber_S_Data.place_forget()
+            self.Customer_S_Lable.place_forget()
+            self.CustomerPartNumber_S_Data.place_forget()
+            self.Batch_S_Lable.place_forget()
+            self.BatchNumber_S_Data.place_forget()
+            self.PartName_S_Lable.place_forget()
+            self.PartName_S_Data.place_forget()
+            self.NG_S.place_forget()
+            self.OK_S.place_forget()
+            self.Packing_S_Lable.place_forget()
+            self.Packing_S_Show.place_forget()
 
         elif len(self.API[1]) == 1:
             if self.API[1][0] == "Right":
@@ -713,7 +724,31 @@ class App(customtkinter.CTk):
                 self.CouterPacking_Right = Packing.Read_Priter(self.PartNumber_R)
                 self.PartNumber = "|"+self.PartNumber_R+ "|"
 
+                self.BKF_Part_S_Lable.place_forget()
+                self.PartNumber_S_Data.place_forget()
+                self.Customer_S_Lable.place_forget()
+                self.CustomerPartNumber_S_Data.place_forget()
+                self.Batch_S_Lable.place_forget()
+                self.BatchNumber_S_Data.place_forget()
+                self.PartName_S_Lable.place_forget()
+                self.PartName_S_Data.place_forget()
+                self.NG_S.place_forget()
+                self.OK_S.place_forget()
+                self.Packing_S_Lable.place_forget()
+                self.Packing_S_Show.place_forget()
 
+                self.BKF_Part_L_Lable.place_forget()
+                self.PartNumber_L_Data.place_forget()
+                self.Customer_L_Lable.place_forget()
+                self.CustomerPartNumber_L_Data.place_forget()
+                self.Batch_L_Lable.place_forget()
+                self.BatchNumber_L_Data.place_forget()
+                self.PartName_L_Lable.place_forget()
+                self.PartName_L_Data.place_forget()
+                self.NG_L.place_forget()
+                self.OK_L.place_forget()
+                self.Packing_L_Lable.place_forget()
+                self.Packing_L_Show.place_forget()
 
 
             elif self.API[1][0] == "Left":
@@ -728,7 +763,31 @@ class App(customtkinter.CTk):
                 self.CouterPacking_Right = Packing.Read_Priter(self.PartNumber_R)
                 self.PartNumber = "|"+"|"+self.PartNumber_L
 
+                self.BKF_Part_S_Lable.place_forget()
+                self.PartNumber_S_Data.place_forget()
+                self.Customer_S_Lable.place_forget()
+                self.CustomerPartNumber_S_Data.place_forget()
+                self.Batch_S_Lable.place_forget()
+                self.BatchNumber_S_Data.place_forget()
+                self.PartName_S_Lable.place_forget()
+                self.PartName_S_Data.place_forget()
+                self.NG_S.place_forget()
+                self.OK_S.place_forget()
+                self.Packing_S_Lable.place_forget()
+                self.Packing_S_Show.place_forget()
 
+                self.BKF_Part_R_Lable.place_forget()
+                self.PartNumber_R_Data.place_forget()
+                self.Customer_R_Lable.place_forget()
+                self.CustomerPartNumber_R_Data.place_forget()
+                self.Batch_R_Lable.place_forget()
+                self.BatchNumber_R_Data.place_forget()
+                self.PartName_R_Lable.place_forget()
+                self.PartName_R_Data.place_forget()
+                self.NG_R.place_forget()
+                self.OK_R.place_forget()
+                self.Packing_R_Lable.place_forget()
+                self.Packing_R_Show.place_forget()
 
             elif self.API[1][0] == "Single":
                 self.ImageReal_Left.place(x=450, y=280)
