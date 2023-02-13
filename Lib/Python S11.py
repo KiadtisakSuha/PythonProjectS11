@@ -57,7 +57,7 @@ class GetAPI:
         method = ["PartNumber", "BatchNumber", "PartName", "CustomerPartNumber", "PackingStd"]
         side = []
         data = []
-        api_url = "https://api.bkf.co.th/APIGateway_DB_BKF/GetCurrentMachineStatus?machineNickName=S03"
+        api_url = "https://api.bkf.co.th/APIGateway_DB_BKF/GetCurrentMachineStatus?machineNickName=E02"
         data_file = 'Part.json'
 
         try:
@@ -436,89 +436,37 @@ class App(customtkinter.CTk):
 
     def __init__(self):
         super().__init__()
-        self.PartNumber_R = self.BatchNumber_R = self.PartName_R = self.CustomerPartNumber_R = self.Packing_R = self.PartNumber_L = self.BatchNumber_L = self.PartName_L = self.CustomerPartNumber_L = self.Packing_L = ""
+        #self.PartNumber_R = self.BatchNumber_R = self.PartName_R = self.CustomerPartNumber_R = self.Packing_R = self.PartNumber_L = self.BatchNumber_L = self.PartName_L = self.CustomerPartNumber_L = self.Packing_L = ""
         self.title('Machine Vision Inspection 1.0.0')
         self.geometry("1920x1020+0+0")
         # self.state('zoomed')
         self.attributes('-fullscreen', True)
-
-        self.API = GetAPI.API()
-        if len(self.API[1]) == 2:
-            self.PartNumber_R = self.API[2][0]
-            self.BatchNumber_R = self.API[2][1]
-            self.PartName_R = self.API[2][2]
-            self.CustomerPartNumber_R = self.API[2][3]
-            self.Packing_R = self.API[2][4]
-
-            self.PartNumber_L = self.API[2][5]
-            self.BatchNumber_L = self.API[2][6]
-            self.PartName_L = self.API[2][7]
-            self.CustomerPartNumber_L = self.API[2][8]
-            self.Packing_L = self.API[2][9]
-
-            self.CouterPacking_Left = Packing.Read_Priter(self.PartNumber_L)
-            self.CouterPacking_Right = Packing.Read_Priter(self.PartNumber_R)
-
-        elif len(self.API[1]) == 1:
-            if self.API[1][0] == "Right":
-                self.PartNumber_R = self.API[2][0]
-                self.BatchNumber_R = self.API[2][1]
-                self.PartName_R = self.API[2][2]
-                self.CustomerPartNumber_R = self.API[2][3]
-                self.Packing_R = self.API[2][4]
-                self.CouterPacking_Left = Packing.Read_Priter(self.PartNumber_L)
-                self.CouterPacking_Right = Packing.Read_Priter(self.PartNumber_R)
-            elif self.API[1][0] == "Left":
-                self.PartNumber_L = self.API[2][0]
-                self.BatchNumber_L = self.API[2][1]
-                self.PartName_L = self.API[2][2]
-                self.CustomerPartNumber_L = self.API[2][3]
-                self.Packing_L = self.API[2][4]
-                self.CouterPacking_Left = Packing.Read_Priter(self.PartNumber_L)
-                self.CouterPacking_Right = Packing.Read_Priter(self.PartNumber_R)
-            elif self.API[1][0] == "Single":
-                self.PartNumber_L = self.API[2][0]
-                self.BatchNumber_L = self.API[2][1]
-                self.PartName_L = self.API[2][2]
-                self.CustomerPartNumber_L = self.API[2][3]
-                self.Packing_L = self.API[2][4]
-                self.CouterPacking_Left = Packing.Read_Priter(self.PartNumber_L)
-                self.CouterPacking_Right = Packing.Read_Priter(self.PartNumber_R)
-
-
+        self.MachineName = "S11"
         self.CouterOK_Left = 0
         self.CouterNG_Left = 0
         self.CouterOK_Right = 0
         self.CouterNG_Right = 0
-        self.Run_Left = False
-        self.Run_Right = False
+
+        self.View()
+        self.ReadFile()
+        self.View_Point()
+
         self.Image_logo = GetImage()
         host = socket.gethostname()
         port = 10000
-        self.client_socket = socket.socket()
-        self.client_socket.connect((host, port))
+        #.client_socket = socket.socket()
+        #self.client_socket.connect((host, port))
         self.Ready = False
 
-        #self.message = "Vision Ready"
-
-
-        self.Loop = InfiniteTimer(0.1, self.client_program)
-        self.Loop.start()
-        self.Keepdata = ""
-
-        self.ReadFile()
+        #self.Loop = InfiniteTimer(0.1, self.client_program)
+        #self.Loop.start()
+        #self.Keepdata = ""
         self.ReadFileScore()
-        self.View()
         self.TCP()
-        # self.Reorder()
         self.AddMaster()
 
         customtkinter.CTkLabel(master=self, text="Vision Inspection", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=50, weight="bold"), corner_radius=10).place(x=140, y=10)
         customtkinter.CTkLabel(master=self, text="v 1.0.0", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=15, weight="bold"), corner_radius=10).place(x=490, y=10)
-        self.ImageReal_Left = tk.Button(self, bg="White", command=lambda: self.ViewImagePart(self.API.PartNumber_L))
-        self.ImageReal_Left.place(x=0, y=280)
-        self.ImageReal_Right = tk.Button(self, bg="White", command=lambda: self.ViewImagePart(self.API.PartNumber_R))
-        self.ImageReal_Right.place(x=960, y=280)
         self.image_logo = tk.Button(self, bg="#232323", image=self.Image_logo.BKFImage, command=self.Destory, bd=0)
         self.image_logo.place(x=1755, y=10)
         self.image_logo.bind("<Enter>", self.on_enter)
@@ -527,7 +475,7 @@ class App(customtkinter.CTk):
         #self.scaling_optionemenu = customtkinter.CTkOptionMenu(master=self, values=["50%", "60%", "70%","80%", "90%", "100%", "110%", "120%"], command=self.change_scaling_event)
         #self.scaling_optionemenu.place(x=1000, y=80)
         customtkinter.CTkButton(master=self, text="Reorder", text_color="#00B400", hover_color="#B4F0B4", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=("#353535"),
-                                command=lambda: [self.ReadFile(), self.ReadFileScore(), self.View()]).place(x=1570, y=10)
+                                command=lambda: [self.ReadFile(), self.ReadFileScore(), self.View(),self.View_Point()]).place(x=1570, y=10)
     def ViewImagePart(self, Partnumber):
         try:
             View = r"Image_Partnumber/" + Partnumber + ".png"
@@ -559,11 +507,10 @@ class App(customtkinter.CTk):
                         self.CouterPoint_Right += 1
         except FileNotFoundError as ex:
             self.CouterPoint_Right = 0
-        #print(self.PartNumber_R ,self.CouterPoint_Right)
 
     def ReadFileScore(self):
         try:
-            with open(GetAPI().PartNumber_L + '/' + GetAPI().PartNumber_L + '.json', 'r') as json_file:
+            with open(self.PartNumber_L + '/' + self.PartNumber_L + '.json', 'r') as json_file:
                 Master_Left = json.loads(json_file.read())
             if self.CouterPoint_Left != 0:
                 self.Point_Left_L = []
@@ -574,13 +521,13 @@ class App(customtkinter.CTk):
                 self.Point_Mode_L = []
                 self.Point_Color_L = []
                 for L in range(self.CouterPoint_Left):
-                    FileFolder_Ok = 'Record/' + GetAPI().PartNumber_L +'/OK/Point' + str(L + 1)
+                    FileFolder_Ok = 'Record/' + self.PartNumber_L +'/OK/Point' + str(L + 1)
                     path = os.path.join(FileFolder_Ok)
                     try:
                         os.makedirs(path, exist_ok=True)
                     except OSError as error:
                         pass
-                    FileFolder_NG = 'Record/' + GetAPI().PartNumber_L +'/NG/Point' + str(L + 1)
+                    FileFolder_NG = 'Record/' + self.PartNumber_L +'/NG/Point' + str(L + 1)
                     path = os.path.join(FileFolder_NG)
                     try:
                         os.makedirs(path, exist_ok=True)
@@ -593,12 +540,10 @@ class App(customtkinter.CTk):
                     self.Point_Bottom_L.append(Master_Left[L]["Point" + str(L + 1)][0]["Bottom"])
                     self.Point_Score_L.append(Master_Left[L]["Point" + str(L + 1)][0]["Score"])
                     self.Point_Color_L.append(Master_Left[L]["Point" + str(L + 1)][0]["Color"])
-                # print(self.Point_Color_L)
         except:
             pass
-
         try:
-            with open(GetAPI().PartNumber_R + '/' + GetAPI().PartNumber_R + '.json', 'r') as json_file:
+            with open(self.PartNumber_R  + '/' + self.PartNumber_R  + '.json', 'r') as json_file:
                 Master_Right = json.loads(json_file.read())
             if self.CouterPoint_Right != 0:
                 self.Point_Left_R = []
@@ -609,13 +554,13 @@ class App(customtkinter.CTk):
                 self.Point_Mode_R = []
                 self.Point_Color_R = []
                 for R in range(self.CouterPoint_Right):
-                    FileFolder_Ok = 'Record/' + GetAPI().PartNumber_R +'/OK/Point' + str(R + 1)
+                    FileFolder_Ok = 'Record/' + self.PartNumber_R  +'/OK/Point' + str(R + 1)
                     path = os.path.join(FileFolder_Ok)
                     try:
                         os.makedirs(path, exist_ok=True)
                     except OSError as error:
                         pass
-                    FileFolder_NG = 'Record/' + GetAPI().PartNumber_R +'/NG/Point' + str(R + 1)
+                    FileFolder_NG = 'Record/' + self.PartNumber_R  +'/NG/Point' + str(R + 1)
                     path = os.path.join(FileFolder_NG)
                     try:
                         os.makedirs(path, exist_ok=True)
@@ -632,17 +577,59 @@ class App(customtkinter.CTk):
             pass
 
     def View(self):
-        self.Run_Left = False
-        self.Run_Right = False
-        #self.CouterPacking_Left = Packing.Read_Priter(self.PartNumber_L)
-        #self.CouterPacking_Right = Packing.Read_Priter(self.PartNumber_R)
-        #Packing.Check_Priter(self.PartNumber_L,self.Packing_L)
-        #Packing.Check_Priter(self.PartNumber_R,self.Packing_R)
-        #self.API = GetAPI()
-        self.PartNumber_R = self.BatchNumber_R = self.PartName_R = self.CustomerPartNumber_R = self.Packing_R = self.PartNumber_L = self.BatchNumber_L = self.PartName_L = self.CustomerPartNumber_L = self.Packing_L = ""
-
         self.API = GetAPI.API()
+        if self.API[0] == "Connected":
+            color = "#00B400"
+        else:
+            color = "#D8D874"
+        customtkinter.CTkLabel(master=self, text="S11", text_color=color, font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=65, weight="bold")).place(x=10, y=0)
+        self.Run_Left = self.Run_Right =False
+        self.ImageReal_Left = tk.Button(self, bg="White", command=lambda: self.ViewImagePart(self.PartNumber_L))
+        self.ImageReal_Right = tk.Button(self, bg="White", command=lambda: self.ViewImagePart(self.PartNumber_R))
+
+        # Left
+        self.BKF_Part_L_Lable = customtkinter.CTkLabel(master=self, text="BKF Part :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold")).place(x=10, y=100)
+        self.PartNumber_L_Data = customtkinter.CTkLabel(master=self, text=self.PartNumber_L, text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), fg_color=("#00B400"), corner_radius=10).place(x=150, y=100)
+        self.Customer_L_Lable = customtkinter.CTkLabel(master=self, text="Customer :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold")).place(x=10, y=140)
+        self.CustomerPartNumber_L_Data = customtkinter.CTkLabel(master=self, text=self.CustomerPartNumber_L, text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), fg_color=("#00B400"), corner_radius=10).place(x=150, y=140)
+        self.Batch_L_Lable = customtkinter.CTkLabel(master=self, text="Batch :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold")).place(x=10, y=180)
+        self.BatchNumber_L_Data = customtkinter.CTkLabel(master=self, text=self.BatchNumber_L, text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), fg_color=("#00B400"), corner_radius=10).place(x=150, y=180)
+        self.PartName_L_Lable = customtkinter.CTkLabel(master=self, text="Part Name :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold")).place(x=10, y=220)
+        self.PartName_L_Data = customtkinter.CTkLabel(master=self, text=self.PartName_L[:30], text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), fg_color=("#00B400"), corner_radius=10).place(x=150, y=220)
+        self.NG_L = customtkinter.CTkButton(master=self, text="NG : " + str(self.CouterNG_Left), text_color="#FFFFFF", hover_color="#C80000", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=50, weight="bold"), corner_radius=10, fg_color=("#FF0000"),
+                                            command=lambda: self.ViewNG("NG_Left"))
+        self.NG_L.place(x=620, y=180)
+        self.OK_L = customtkinter.CTkLabel(master=self, text="OK : " + str(self.CouterOK_Left), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=52, weight="bold"), corner_radius=10, fg_color=("#00B400"))
+        self.OK_L.place(x=620, y=100)
+        self.Packing_L_Lable = customtkinter.CTkLabel(master=self, text="Packing :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), corner_radius=10).place(x=400, y=100)
+        self.Packing_L_Show = customtkinter.CTkLabel(master=self, text=str(self.CouterPacking_Left) + "/" + str(self.Packing_L), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), corner_radius=10, fg_color=("#00B400"))
+        self.Packing_L_Show.place(x=530, y=100)
+        # Right
+        # print(self.Packing_L)
+        self.BKF_Part_R_Lable = customtkinter.CTkLabel(master=self, text="BKF Part :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold")).place(x=960, y=100)
+        self.PartNumber_R_Data = customtkinter.CTkLabel(master=self, text=self.PartNumber_R, text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), fg_color=("#00B400"), corner_radius=10).place(x=1100, y=100)
+        self.Customer_R_Lable = customtkinter.CTkLabel(master=self, text="Customer :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold")).place(x=960, y=140)
+        self.CustomerPartNumber_R_Data = customtkinter.CTkLabel(master=self, text=self.CustomerPartNumber_R, text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), fg_color=("#00B400"), corner_radius=10).place(x=1100, y=140)
+        self.Batch_R_Lable = customtkinter.CTkLabel(master=self, text="Batch :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold")).place(x=960, y=180)
+        self.BatchNumber_R_Data = customtkinter.CTkLabel(master=self, text=self.BatchNumber_R, text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), fg_color=("#00B400"), corner_radius=10).place(x=1100, y=180)
+        self.PartName_R_Data = customtkinter.CTkLabel(master=self, text="Part Name :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold")).place(x=960, y=220)
+        self.PartName_R_Data = customtkinter.CTkLabel(master=self, text=self.PartName_R[:30], text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), fg_color=("#00B400"), corner_radius=10).place(x=1100, y=220)
+        self.NG_R = customtkinter.CTkButton(master=self, text="NG : " + str(self.CouterNG_Left), text_color="#FFFFFF", hover_color="#C80000", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=50, weight="bold"), corner_radius=10, fg_color=("#FF0000"),
+                                            command=lambda: self.ViewNG("NG_Right"))
+        self.NG_R.place(x=1590, y=180)
+        self.OK_R = customtkinter.CTkLabel(master=self, text="OK : " + str(self.CouterOK_Left), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=52, weight="bold"), corner_radius=10, fg_color=("#00B400"))
+        self.OK_R.place(x=1590, y=100)
+        self.Packing_R_Lable = customtkinter.CTkLabel(master=self, text="Packing :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), corner_radius=10).place(x=1360, y=100)
+        self.Packing_R_Show = customtkinter.CTkLabel(master=self, text=str(self.CouterPacking_Right) + "/" + str(self.Packing_R), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), corner_radius=10, fg_color=("#00B400"))
+        self.Packing_R_Show.place(x=1490, y=100)
+
+        self.PartNumber_R = self.BatchNumber_R = self.PartName_R = self.CustomerPartNumber_R = self.Packing_R = ""
+        self.PartNumber_L = self.BatchNumber_L = self.PartName_L = self.CustomerPartNumber_L = self.Packing_L = ""
+        self.PartNumber_S = self.BatchNumber_S = self.PartName_S = self.CustomerPartNumber_S = self.Packing_S = ""
+
         if len(self.API[1]) == 2:
+            self.ImageReal_Left.place(x=0, y=260)
+            self.ImageReal_Right.place(x=960, y=260)
             self.PartNumber_R = self.API[2][0]
             self.BatchNumber_R = self.API[2][1]
             self.PartName_R = self.API[2][2]
@@ -655,11 +642,15 @@ class App(customtkinter.CTk):
             self.CustomerPartNumber_L = self.API[2][8]
             self.Packing_L = self.API[2][9]
 
+            self.PartNumber = "|"+self.PartNumber_R + "|" + self.PartNumber_L
+
             self.CouterPacking_Left = Packing.Read_Priter(self.PartNumber_L)
             self.CouterPacking_Right = Packing.Read_Priter(self.PartNumber_R)
 
         elif len(self.API[1]) == 1:
             if self.API[1][0] == "Right":
+                self.ImageReal_Left.place_forget()
+                self.ImageReal_Right.place(x=450, y=260)
                 self.PartNumber_R = self.API[2][0]
                 self.BatchNumber_R = self.API[2][1]
                 self.PartName_R = self.API[2][2]
@@ -667,7 +658,12 @@ class App(customtkinter.CTk):
                 self.Packing_R = self.API[2][4]
                 self.CouterPacking_Left = Packing.Read_Priter(self.PartNumber_L)
                 self.CouterPacking_Right = Packing.Read_Priter(self.PartNumber_R)
+
+                self.PartNumber = "|"+self.PartNumber_R+ "|"
+
             elif self.API[1][0] == "Left":
+                self.ImageReal_Left.place(x=450, y=260)
+                self.ImageReal_Right.place_forget()
                 self.PartNumber_L = self.API[2][0]
                 self.BatchNumber_L = self.API[2][1]
                 self.PartName_L = self.API[2][2]
@@ -675,7 +671,12 @@ class App(customtkinter.CTk):
                 self.Packing_L = self.API[2][4]
                 self.CouterPacking_Left = Packing.Read_Priter(self.PartNumber_L)
                 self.CouterPacking_Right = Packing.Read_Priter(self.PartNumber_R)
+
+                self.PartNumber = "|"+"|"+self.PartNumber_L
+
             elif self.API[1][0] == "Single":
+                self.ImageReal_Left.place(x=450, y=280)
+                self.ImageReal_Right.place_forget()
                 self.PartNumber_L = self.API[2][0]
                 self.BatchNumber_L = self.API[2][1]
                 self.PartName_L = self.API[2][2]
@@ -683,51 +684,13 @@ class App(customtkinter.CTk):
                 self.Packing_L = self.API[2][4]
                 self.CouterPacking_Left = Packing.Read_Priter(self.PartNumber_L)
                 self.CouterPacking_Right = Packing.Read_Priter(self.PartNumber_R)
+                self.PartNumber = self.PartNumber_L + "|"+ "|"
 
-        if self.API[0] == "Connected":
-            color = "#00B400"
-        else:
-            color = "#D8D874"
-        # customtkinter.CTkButton(master=self, text="NG : 000"+str(self.CouterNG_Left), text_color="#FFFFFF", hover_color="#C80000", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=50, weight="bold"), corner_radius=10, fg_color=("#FF0000"),command=self.Destory).place(x=680, y=180)
-        customtkinter.CTkLabel(master=self, text="S11", text_color=color, font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=65, weight="bold")).place(x=10, y=0)
-        # customtkinter.CTkLabel(master=self, text="Server : "+self.API.Sever, text_color=color, font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=30, weight="bold"), corner_radius=10).place(x=1250, y=20)
-        # Left
-        customtkinter.CTkLabel(master=self, text="BKF Part :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold")).place(x=10, y=100)
-        customtkinter.CTkLabel(master=self, text=self.PartNumber_L, text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), fg_color=("#00B400"), corner_radius=10).place(x=150, y=100)
-        customtkinter.CTkLabel(master=self, text="Customer :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold")).place(x=10, y=140)
-        customtkinter.CTkLabel(master=self, text=self.CustomerPartNumber_L, text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), fg_color=("#00B400"), corner_radius=10).place(x=150, y=140)
-        customtkinter.CTkLabel(master=self, text="Batch :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold")).place(x=10, y=180)
-        customtkinter.CTkLabel(master=self, text=self.BatchNumber_L, text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), fg_color=("#00B400"), corner_radius=10).place(x=150, y=180)
-        customtkinter.CTkLabel(master=self, text="Part Name :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold")).place(x=10, y=220)
-        customtkinter.CTkLabel(master=self, text=self.PartName_L[:30], text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), fg_color=("#00B400"), corner_radius=10).place(x=150, y=220)
-        self.NG_L = customtkinter.CTkButton(master=self, text="NG : " + str(self.CouterNG_Left), text_color="#FFFFFF", hover_color="#C80000", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=50, weight="bold"), corner_radius=10, fg_color=("#FF0000"), command=lambda: self.ViewNG("NG_Left"))
-        self.NG_L.place(x=620, y=180)
-        self.OK_L = customtkinter.CTkLabel(master=self, text="OK : " + str(self.CouterOK_Left), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=52, weight="bold"), corner_radius=10, fg_color=("#00B400"))
-        self.OK_L.place(x=620, y=100)
-        customtkinter.CTkLabel(master=self, text="Packing :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), corner_radius=10).place(x=400, y=100)
-        self.Packing_L = customtkinter.CTkLabel(master=self, text=str(self.CouterPacking_Left) + "/" + str(self.Packing_L), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), corner_radius=10, fg_color=("#00B400"))
-        self.Packing_L.place(x=530, y=100)
-        # Right
-        customtkinter.CTkLabel(master=self, text="BKF Part :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold")).place(x=960, y=100)
-        customtkinter.CTkLabel(master=self, text=self.PartNumber_R, text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), fg_color=("#00B400"), corner_radius=10).place(x=1100, y=100)
-        customtkinter.CTkLabel(master=self, text="Customer :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold")).place(x=960, y=140)
-        customtkinter.CTkLabel(master=self, text=self.CustomerPartNumber_R, text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), fg_color=("#00B400"), corner_radius=10).place(x=1100, y=140)
-        customtkinter.CTkLabel(master=self, text="Batch :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold")).place(x=960, y=180)
-        customtkinter.CTkLabel(master=self, text=self.BatchNumber_R, text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), fg_color=("#00B400"), corner_radius=10).place(x=1100, y=180)
-        customtkinter.CTkLabel(master=self, text="Part Name :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold")).place(x=960, y=220)
-        customtkinter.CTkLabel(master=self, text=self.PartName_R[:30], text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), fg_color=("#00B400"), corner_radius=10).place(x=1100, y=220)
-        self.NG_R = customtkinter.CTkButton(master=self, text="NG : " + str(self.CouterNG_Left), text_color="#FFFFFF", hover_color="#C80000", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=50, weight="bold"), corner_radius=10, fg_color=("#FF0000"), command=lambda: self.ViewNG("NG_Right"))
-        self.NG_R.place(x=1590, y=180)
-        self.OK_R = customtkinter.CTkLabel(master=self, text="OK : " + str(self.CouterOK_Left), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=52, weight="bold"), corner_radius=10, fg_color=("#00B400"))
-        self.OK_R.place(x=1590, y=100)
-        customtkinter.CTkLabel(master=self, text="Packing :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), corner_radius=10).place(x=1360, y=100)
-        self.Packing_R = customtkinter.CTkLabel(master=self, text=str(self.CouterPacking_Right) + "/" + str(self.Packing_R), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), corner_radius=10, fg_color=("#00B400"))
-        self.Packing_R.place(x=1490, y=100)
 
-        self.Frame_Point = customtkinter.CTkFrame(master=self, width=1980, height=270).place(x=0, y=800)
 
-        # ,command=lambda :self.ViewNG_RealTime()
 
+    def View_Point(self):
+        self.Frame_Point = customtkinter.CTkFrame(master=self, width=1980, height=270).place(x=0, y=810)
         if self.PartNumber_L != "":
             for Point_Left in range(self.CouterPoint_Left):
                 if Point_Left <= 4:
@@ -744,10 +707,6 @@ class App(customtkinter.CTk):
                     customtkinter.CTkLabel(master=self.Frame_Point, text="Point:" + str(Point_Right + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=("#A9A9A9")).place(x=960 + ((Point_Right - 5) * 190), y=930)
                 elif Point_Right <= 15:
                     customtkinter.CTkLabel(master=self.Frame_Point, text="Point:" + str(Point_Right + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=("#A9A9A9")).place(x=960 + ((Point_Right - 10) * 190), y=1010)
-
-        # customtkinter.CTkLabel(master=self, text="Point:1", text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=("red")).place(x=0, y=850)
-        #customtkinter.CTkButton(master=self, text="Test Left", text_color="#FFFFFF", hover_color="#C80000", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=20, weight="bold"), corner_radius=10, fg_color=("#FF0000"), command=lambda: self.Processing(1)).place(x=1000, y=20)
-        #customtkinter.CTkButton(master=self, text="Test Right", text_color="#FFFFFF", hover_color="#C80000", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=20, weight="bold"), corner_radius=10, fg_color=("#FF0000"), command=lambda: self.Processing(2)).place(x=1150, y=20)
 
     def ViewNG(self, Side):
         ViewNG = Toplevel(self)
@@ -770,47 +729,50 @@ class App(customtkinter.CTk):
 
     def Processing(self):
         if self.data == "Snap1":
+            print(self.PartNumber_L, self.Packing_L)
             if self.CouterPoint_Left != 0:
                 self.Run_Left = True
                 Filename = "Current_Left.png"
                 cv.imwrite(Filename, frame0.read()[1])
-                ImageSave, ColorView, Color_Save_Image, Result, Score = Main.Main(GetAPI().PartNumber_L, Filename, self.CouterPoint_Left, self.Point_Mode_L, self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L, self.Point_Score_L, self.Point_Color_L)
+                ImageSave, ColorView, Color_Save_Image, Result, Score = Main.Main(self.PartNumber_L, Filename, self.CouterPoint_Left, self.Point_Mode_L, self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L, self.Point_Score_L, self.Point_Color_L)
                 # self.Ready = True
                 image = Main.ViewImage_Snap(Filename, self.CouterPoint_Left, self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L, Score, ColorView)
-                Save_Data.Save_Image(GetAPI().PartNumber_L, self.CouterPoint_Left, ImageSave, self.Point_Mode_L, self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L, Color_Save_Image, Score, self.Point_Score_L, Result)
-                Save_Data.Save_Score(GetAPI().PartNumber_L, GetAPI().BatchNumber_L, GetAPI().MachineName_L, self.CouterPoint_Left, Score, Result)
+                Save_Data.Save_Image(self.PartNumber_L, self.CouterPoint_Left, ImageSave, self.Point_Mode_L, self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L, Color_Save_Image, Score, self.Point_Score_L, Result)
+                Save_Data.Save_Score(self.PartNumber_L, self.BatchNumber_L, self.MachineName, self.CouterPoint_Left, Score, Result)
                 Data = Main.ShowResult(Result)
                 if Data is True:
                     self.message = "OK"
                     self.CouterOK_Left = self.CouterOK_Left + 1
                     self.OK_L.configure(text="NG : " + str(self.CouterOK_Left))
-                    Packing.Couter_Printer(GetAPI().PartNumber_L, GetAPI().Packing_L)
-                    CouterPacking = Packing.Read_Priter(GetAPI().PartNumber_L)
-                    self.Packing_L.configure(text=str(CouterPacking) + "/" + str(GetAPI().Packing_L))
+                    #print(self.PartNumber_L, self.Packing_L)
+                    Packing.Couter_Printer(self.PartNumber_L, self.Packing_L)
+                    #CouterPacking = Packing.Read_Priter(self.PartNumber_L)
+                    #self.Packing_L.configure(text=str(CouterPacking) + "/" + str(self.Packing_L))
                 elif Data is False:
                     self.message = "NG"
                     self.CouterNG_Left = self.CouterNG_Left + 1
                     self.NG_L.configure(text="NG : " + str(self.CouterNG_Left))
                 self.ImageReal_Left.imgtk = image
                 self.ImageReal_Left.configure(image=image)
+
         elif self.data == "Snap2":
             if self.CouterPoint_Left != 0:
                 self.Run_Left = True
                 Filename = "Current_Left.png"
                 cv.imwrite(Filename, frame0.read()[1])
-                ImageSave, ColorView, Color_Save_Image, Result, Score = Main.Main(GetAPI().PartNumber_L,Filename,self.CouterPoint_Left,self.Point_Mode_L,self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L,self.Point_Score_L,self.Point_Color_L)
+                ImageSave, ColorView, Color_Save_Image, Result, Score = Main.Main(self.PartNumber_L,Filename,self.CouterPoint_Left,self.Point_Mode_L,self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L,self.Point_Score_L,self.Point_Color_L)
                 #self.Ready = True
                 image = Main.ViewImage_Snap(Filename, self.CouterPoint_Left,self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L, Score, ColorView)
-                Save_Data.Save_Image(GetAPI().PartNumber_L,self.CouterPoint_Left,ImageSave,self.Point_Mode_L,self.Point_Left_L,self.Point_Top_L,self.Point_Right_L,self.Point_Bottom_L,Color_Save_Image,Score,self.Point_Score_L,Result)
-                Save_Data.Save_Score(GetAPI().PartNumber_L, GetAPI().BatchNumber_L, GetAPI().MachineName_L,self.CouterPoint_Left,Score,Result)
+                Save_Data.Save_Image(self.PartNumber_L,self.CouterPoint_Left,ImageSave,self.Point_Mode_L,self.Point_Left_L,self.Point_Top_L,self.Point_Right_L,self.Point_Bottom_L,Color_Save_Image,Score,self.Point_Score_L,Result)
+                Save_Data.Save_Score(self.PartNumber_L, self.BatchNumber_L, self.MachineName,self.CouterPoint_Left,Score,Result)
                 Data = Main.ShowResult(Result)
                 if Data is True:
                     self.message = "OK"
                     self.CouterOK_Left = self.CouterOK_Left + 1
                     self.OK_L.configure(text="NG : " + str(self.CouterOK_Left))
-                    Packing.Couter_Printer(GetAPI().PartNumber_L,GetAPI().Packing_L)
-                    CouterPacking = Packing.Read_Priter(GetAPI().PartNumber_L)
-                    self.Packing_L.configure(text=str(CouterPacking) + "/" + str(GetAPI().Packing_L))
+                    Packing.Couter_Printer(self.PartNumber_L,self.Packing_L)
+                    CouterPacking = Packing.Read_Priter(self.PartNumber_L)
+                    self.Packing_L.configure(text=str(CouterPacking) + "/" + str(self.Packing_L))
                 elif Data is False:
                     self.message = "NG"
                     self.CouterNG_Left = self.CouterNG_Left + 1
@@ -825,18 +787,18 @@ class App(customtkinter.CTk):
                 self.Run_Right = True
                 Filename = "Current_Right.png"
                 cv.imwrite(Filename, frame1.read()[1])
-                ImageSave, ColorView, Color_Save_Image, Result, Score = Main.Main(GetAPI().PartNumber_R,Filename,self.CouterPoint_Right,self.Point_Mode_R,self.Point_Left_R, self.Point_Top_R, self.Point_Right_R, self.Point_Bottom_R,self.Point_Score_R,self.Point_Color_R)
+                ImageSave, ColorView, Color_Save_Image, Result, Score = Main.Main(self.PartNumber_R,Filename,self.CouterPoint_Right,self.Point_Mode_R,self.Point_Left_R, self.Point_Top_R, self.Point_Right_R, self.Point_Bottom_R,self.Point_Score_R,self.Point_Color_R)
                 image = Main.ViewImage_Snap(Filename, self.CouterPoint_Right, self.Point_Left_R, self.Point_Top_R, self.Point_Right_R, self.Point_Bottom_R, Score, ColorView)
-                Save_Data.Save_Image(GetAPI().PartNumber_R,self.CouterPoint_Right,ImageSave,self.Point_Mode_R,self.Point_Left_R,self.Point_Top_R,self.Point_Right_R,self.Point_Bottom_R,Color_Save_Image,Score,self.Point_Score_R,Result)
-                Save_Data.Save_Score(GetAPI().PartNumber_R, GetAPI().BatchNumber_R, GetAPI().MachineName_R,self.CouterPoint_Right,Score,Result)
+                Save_Data.Save_Image(self.PartNumber_R,self.CouterPoint_Right,ImageSave,self.Point_Mode_R,self.Point_Left_R,self.Point_Top_R,self.Point_Right_R,self.Point_Bottom_R,Color_Save_Image,Score,self.Point_Score_R,Result)
+                Save_Data.Save_Score(self.PartNumber_R, self.BatchNumber_R, self.MachineName,self.CouterPoint_Right,Score,Result)
                 Data = Main.ShowResult(Result)
                 if Data is True:
                     self.message = "OK"
                     self.CouterOK_Right = self.CouterOK_Right + 1
                     self.OK_R.configure(text="NG : " + str(self.CouterOK_Right))
-                    Packing.Couter_Printer(GetAPI().PartNumber_R, GetAPI().Packing_R)
-                    CouterPacking = Packing.Read_Priter(GetAPI().PartNumber_R)
-                    self.Packing_R.configure(text=str(CouterPacking) + "/" + str(GetAPI().Packing_R))
+                    Packing.Couter_Printer(self.PartNumber_R, self.Packing_R)
+                    CouterPacking = Packing.Read_Priter(self.PartNumber_R)
+                    self.Packing_R.configure(text=str(CouterPacking) + "/" + str(self.Packing_R))
                 elif Data is False:
                     self.message = "NG"
                     self.CouterNG_Right = self.CouterNG_Right + 1
@@ -868,7 +830,7 @@ class App(customtkinter.CTk):
                 else:
                     self.message = "Setup"
             elif self.data == "PartNumber":
-                self.message = GetAPI().PartNumber_R
+                self.message = self.PartNumber
             elif self.data == "Snap1":#Single
                 self.Processing()
             elif self.data == "Snap2":#Left
