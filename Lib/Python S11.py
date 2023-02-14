@@ -57,7 +57,7 @@ class GetAPI:
         method = ["PartNumber", "BatchNumber", "PartName", "CustomerPartNumber", "PackingStd"]
         side = []
         data = []
-        api_url = "https://api.bkf.co.th/APIGateway_DB_BKF/GetCurrentMachineStatus?machineNickName=E15"
+        api_url = "https://api.bkf.co.th/APIGateway_DB_BKF/GetCurrentMachineStatus?machineNickName=S11"
         data_file = 'Part.json'
 
         try:
@@ -902,6 +902,14 @@ class App(customtkinter.CTk):
                     customtkinter.CTkLabel(master=self.Frame_Point, text="Point:" + str(Point_Right + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=("#A9A9A9")).place(x=960 + ((Point_Right - 5) * 190), y=930)
                 elif Point_Right <= 15:
                     customtkinter.CTkLabel(master=self.Frame_Point, text="Point:" + str(Point_Right + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=("#A9A9A9")).place(x=960 + ((Point_Right - 10) * 190), y=1010)
+        if self.PartNumber_S != "":
+            for Point_Single in range(self.CouterPoint_Single):
+                if Point_Single <= 4:
+                    customtkinter.CTkLabel(master=self.Frame_Point, text="Point:" + str(Point_Single + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=("#A9A9A9")).place(x=450 + (Point_Single * 190), y=850)
+                elif Point_Single <= 9:
+                    customtkinter.CTkLabel(master=self.Frame_Point, text="Point:" + str(Point_Single + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=("#A9A9A9")).place(x=450 + ((Point_Single - 5) * 190), y=930)
+                elif Point_Single <= 15:
+                    customtkinter.CTkLabel(master=self.Frame_Point, text="Point:" + str(Point_Single + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=("#A9A9A9")).place(x=450 + ((Point_Single - 10) * 190), y=1010)
 
     def ViewNG(self, Side):
         ViewNG = Toplevel(self)
@@ -924,29 +932,27 @@ class App(customtkinter.CTk):
 
     def Processing(self):
         if self.data == "Snap1":
-            print(self.PartNumber_L, self.Packing_L)
             if self.CouterPoint_Left != 0:
                 self.Run_Left = True
-                Filename = "Current_Left.png"
+                Filename = "Current_Single.png"
                 cv.imwrite(Filename, frame0.read()[1])
-                ImageSave, ColorView, Color_Save_Image, Result, Score = Main.Main(self.PartNumber_L, Filename, self.CouterPoint_Left, self.Point_Mode_L, self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L, self.Point_Score_L, self.Point_Color_L)
+                ImageSave, ColorView, Color_Save_Image, Result, Score = Main.Main(self.PartNumber_S, Filename, self.CouterPoint_Single, self.Point_Mode_S, self.Point_Left_S, self.Point_Top_S, self.Point_Right_S, self.Point_Bottom_S, self.Point_Score_S, self.Point_Color_S)
                 # self.Ready = True
-                image = Main.ViewImage_Snap(Filename, self.CouterPoint_Left, self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L, Score, ColorView)
-                Save_Data.Save_Image(self.PartNumber_L, self.CouterPoint_Left, ImageSave, self.Point_Mode_L, self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L, Color_Save_Image, Score, self.Point_Score_L, Result)
-                Save_Data.Save_Score(self.PartNumber_L, self.BatchNumber_L, self.MachineName, self.CouterPoint_Left, Score, Result)
+                image = Main.ViewImage_Snap(Filename, self.CouterPoint_Single, self.Point_Left_S, self.Point_Top_S, self.Point_Right_S, self.Point_Bottom_S, Score, ColorView)
+                Save_Data.Save_Image(self.PartNumber_S, self.CouterPoint_Single, ImageSave, self.Point_Mode_S, self.Point_Left_S, self.Point_Top_S, self.Point_Right_S, self.Point_Bottom_S, Color_Save_Image, Score, self.Point_Score_S, Result)
+                Save_Data.Save_Score(self.PartNumber_S, self.BatchNumber_S, self.MachineName, self.CouterPoint_Single, Score, Result)
                 Data = Main.ShowResult(Result)
                 if Data is True:
                     self.message = "OK"
-                    self.CouterOK_Left = self.CouterOK_Left + 1
-                    self.OK_L.configure(text="NG : " + str(self.CouterOK_Left))
-                    #print(self.PartNumber_L, self.Packing_L)
-                    Packing.Couter_Printer(self.PartNumber_L, self.Packing_L)
-                    #CouterPacking = Packing.Read_Priter(self.PartNumber_L)
-                    #self.Packing_L.configure(text=str(CouterPacking) + "/" + str(self.Packing_L))
+                    self.CouterOK_Single += 1
+                    self.OK_S.configure(text="NG : " + str(self.CouterOK_Single))
+                    Packing.Couter_Printer(self.PartNumber_S, self.Packing_S)
+                    CouterPacking = Packing.Read_Priter(self.PartNumber_S)
+                    self.Packing_S.configure(text=str(CouterPacking) + "/" + str(self.Packing_S))
                 elif Data is False:
                     self.message = "NG"
-                    self.CouterNG_Left = self.CouterNG_Left + 1
-                    self.NG_L.configure(text="NG : " + str(self.CouterNG_Left))
+                    self.CouterNG_Single = self.CouterNG_Single + 1
+                    self.NG_S.configure(text="NG : " + str(self.CouterNG_Single))
                 self.ImageReal_Left.imgtk = image
                 self.ImageReal_Left.configure(image=image)
 
