@@ -63,27 +63,27 @@ imagegaussianblur = convolve2d(input_image, kernel=np.array([[1, 2, 1], [2, 4, 2
 cv2.imwrite(IMAGES_PATH + 'gaussian_blur.jpg', imagegaussianblur)
     
     """""""""""
-import numpy as np
-from scipy import signal
-import matplotlib.pyplot as plt
-
-def dilated_conv2d(inputs, filters, dilation_rate):
-    sh, sw = dilation_rate
-    ih, iw = inputs.shape
-    oh, ow = (ih + sh - 1)//sh, (iw + sw - 1)//sw
-    output = np.zeros((oh, ow))
-    for y in range(oh):
-        for x in range(ow):
-            ii = y*sh
-            jj = x*sw
-            if ii >= 0 and ii < ih and jj >= 0 and jj < iw:
-                output[y, x] = np.sum(inputs[ii:ii+sh, jj:jj+sw] * filters)
-    return output
-
-inputs = plt.imread("Point 2_Outline.bmp")
-inputs = inputs/255
-if inputs.ndim == 3:
-    inputs = inputs.mean(axis=2)
-filters = np.ones((2, 2))
-x = dilated_conv2d(inputs, filters, (2, 2))
-print(x)
+import json
+import logging
+import os
+import time
+import tkinter as tk
+import urllib.request
+import urllib.request
+from threading import Timer
+from tkinter import ttk
+from tkinter.ttk import Notebook, Style
+import cv2 as cv
+#import pyvisa
+from PIL import Image
+from PIL import ImageTk
+#from pygame import mixer
+from tkinter import messagebox
+import sys
+import subprocess
+Partnumber = "TMT7A31SOO"
+Point = "Point1"
+image_path_Master = Partnumber + '/Master/' + Point + '_Master.png'
+image1 = cv.imread(image_path_Master)
+image = cv.cvtColor(image1, cv.COLOR_BGR2RGB)
+im = Image.fromarray(image)

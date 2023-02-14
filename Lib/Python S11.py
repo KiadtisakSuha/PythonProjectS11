@@ -57,7 +57,7 @@ class GetAPI:
         method = ["PartNumber", "BatchNumber", "PartName", "CustomerPartNumber", "PackingStd"]
         side = []
         data = []
-        api_url = "https://api.bkf.co.th/APIGateway_DB_BKF/GetCurrentMachineStatus?machineNickName=S03"
+        api_url = "https://api.bkf.co.th/APIGateway_DB_BKF/GetCurrentMachineStatus?machineNickName=S02"
         data_file = 'Part.json'
 
         try:
@@ -144,10 +144,12 @@ class Main:
                             Score.append(Score_Area_Data)
                             if Score_Area_Data >= Score_Set[x]:
                                 ColorView.append((0, 255, 0))
+                                Color.append("#00B400")
                                 Color_Save_Image.append((0, 255, 0))
                                 Result.append(1)
                             else:
                                 ColorView.append((255, 0, 0))
+                                Color.append("#B40000")
                                 Color_Save_Image.append((0, 0, 255))
                                 Result.append(0)
                         elif Mode[x] == "Color":
@@ -155,18 +157,21 @@ class Main:
                             Score.append(Score_Color)
                             if Score_Color >= Score_Set[x]:
                                 ColorView.append((0, 255, 0))
+                                Color.append("#00B400")
                                 Result.append(1)
                                 Color_Save_Image.append((0, 255, 0))
                             else:
                                 ColorView.append((255, 0, 0))
                                 Result.append(0)
+                                Color.append("#B40000")
                                 Color_Save_Image.append((0, 0, 255))
                     else:
                         ColorView.append((255, 0, 0))
+                        Color.append("#B40000")
                         Score.append(0)
                         Result.append(0)
                         Color_Save_Image.append((0, 0, 255))
-                return ImageSave, ColorView, Color_Save_Image, Result, Score
+                return ImageSave, ColorView, Color_Save_Image, Result, Score, Color
 
     @staticmethod
     def ViewImage_Snap(Filename,Counter,Left,Top,Right,Bottom,Score,Color):
@@ -443,20 +448,23 @@ class App(customtkinter.CTk):
         self.CouterNG_Right = 0
         self.CouterOK_Single = 0
         self.CouterNG_Single = 0
-        color = "#8D8D8D"
+        self.Login = None
+        self.ViewImage = False
+
         self.View()
         self.ReadFile()
-        self.View_Point(color)
+        self.View_Point_Clear()
+
 
         self.Image_logo = GetImage()
         host = socket.gethostname()
         port = 10000
-        self.client_socket = socket.socket()
-        self.client_socket.connect((host, port))
+        #self.client_socket = socket.socket()
+        #self.client_socket.connect((host, port))
         self.Ready = False
 
-        self.Loop = InfiniteTimer(0.1, self.client_program)
-        self.Loop.start()
+        #self.Loop = InfiniteTimer(0.1, self.client_program)
+        #self.Loop.start()
         self.Keepdata = ""
         self.ReadFileScore()
         self.TCP()
@@ -472,18 +480,13 @@ class App(customtkinter.CTk):
         #self.scaling_optionemenu = customtkinter.CTkOptionMenu(master=self, values=["50%", "60%", "70%","80%", "90%", "100%", "110%", "120%"], command=self.change_scaling_event)
         #self.scaling_optionemenu.place(x=1000, y=80)
         customtkinter.CTkButton(master=self, text="Reorder", text_color="#00B400", hover_color="#B4F0B4", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=("#353535"),
-                                command=lambda: [self.forget(),self.View(),self.ReadFile(), self.ReadFileScore(),self.View_Point(color)]).place(x=1570, y=10)
-    def ViewImagePart(self, Partnumber):
-        try:
-            View = r"Image_Partnumber/" + Partnumber + ".png"
-            img = cv.imread(View, cv.COLOR_BGR2RGB)
-            cv.imshow(Partnumber, img)
-            cv.waitKey(0)
-        except:
-            View = r"BKF.png"
-            img = cv.imread(View, cv.COLOR_BGR2RGB)
-            cv.imshow(Partnumber, img)
-            cv.waitKey(0)
+                                command=lambda: [self.forget(),self.View_Point_Clear(),self.View(),self.ReadFile(), self.ReadFileScore()]).place(x=1570, y=10)
+
+
+
+
+
+
 
     def ReadFile(self):
         try:
@@ -527,6 +530,7 @@ class App(customtkinter.CTk):
                 self.Point_Score_L = []
                 self.Point_Mode_L = []
                 self.Point_Color_L = []
+                Color_Left = []
                 for L in range(self.CouterPoint_Left):
                     FileFolder_Ok = 'Record/' + self.PartNumber_L +'/OK/Point' + str(L + 1)
                     path = os.path.join(FileFolder_Ok)
@@ -547,6 +551,8 @@ class App(customtkinter.CTk):
                     self.Point_Bottom_L.append(Master_Left[L]["Point" + str(L + 1)][0]["Bottom"])
                     self.Point_Score_L.append(Master_Left[L]["Point" + str(L + 1)][0]["Score"])
                     self.Point_Color_L.append(Master_Left[L]["Point" + str(L + 1)][0]["Color"])
+                    Color_Left.append("#A9A9A9")
+                self.View_Point_Left(Color_Left)
 
         except:
             pass
@@ -561,6 +567,7 @@ class App(customtkinter.CTk):
                 self.Point_Score_R = []
                 self.Point_Mode_R = []
                 self.Point_Color_R = []
+                Color_Right = []
                 for R in range(self.CouterPoint_Right):
                     FileFolder_Ok = 'Record/' + self.PartNumber_R  +'/OK/Point' + str(R + 1)
                     path = os.path.join(FileFolder_Ok)
@@ -581,6 +588,8 @@ class App(customtkinter.CTk):
                     self.Point_Bottom_R.append(Master_Right[R]["Point" + str(R + 1)][0]["Bottom"])
                     self.Point_Score_R.append(Master_Right[R]["Point" + str(R + 1)][0]["Score"])
                     self.Point_Color_R.append(Master_Right[R]["Point" + str(R + 1)][0]["Color"])
+                    Color_Right.append("#A9A9A9")
+                self.View_Point_Right(Color_Right)
         except:
             pass
 
@@ -595,6 +604,7 @@ class App(customtkinter.CTk):
                 self.Point_Score_S = []
                 self.Point_Mode_S = []
                 self.Point_Color_S = []
+                Color_Single = []
                 for S in range(self.CouterPoint_Single):
                     FileFolder_Ok = 'Record/' + self.PartNumber_S + '/OK/Point' + str(S + 1)
                     path = os.path.join(FileFolder_Ok)
@@ -615,6 +625,8 @@ class App(customtkinter.CTk):
                     self.Point_Bottom_S.append(Master_Right[S]["Point" + str(S + 1)][0]["Bottom"])
                     self.Point_Score_S.append(Master_Right[S]["Point" + str(S + 1)][0]["Score"])
                     self.Point_Color_S.append(Master_Right[S]["Point" + str(S + 1)][0]["Color"])
+                    Color_Single.append("#A9A9A9")
+                self.View_Point_Single(Color_Single)
         except:
             pass
 
@@ -626,9 +638,8 @@ class App(customtkinter.CTk):
         else:
             color = "#D8D874"
         customtkinter.CTkLabel(master=self, text="S11", text_color=color, font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=65, weight="bold")).place(x=10, y=0)
-        self.Run_Left = self.Run_Right =False
-        self.ImageReal_Left = tk.Button(self, bg="White", command=lambda: self.ViewImagePart(self.PartNumber_L))
-        self.ImageReal_Right = tk.Button(self, bg="White", command=lambda: self.ViewImagePart(self.PartNumber_R))
+        self.Run_Left = self.Run_Right = self.Run_Single = False
+
 
         self.CouterPacking_Left = 0
         self.CouterPacking_Right = 0
@@ -643,6 +654,8 @@ class App(customtkinter.CTk):
 
 
         if len(self.API[1]) == 2:
+            self.ImageReal_Left = tk.Button(self, bg="White", command=lambda: self.ViewImagePart(self.PartNumber_L))
+            self.ImageReal_Right = tk.Button(self, bg="White", command=lambda: self.ViewImagePart(self.PartNumber_R))
             self.ImageReal_Left.place(x=0, y=260)
             self.ImageReal_Right.place(x=960, y=260)
             self.PartNumber_R = self.API[2][0]
@@ -678,7 +691,7 @@ class App(customtkinter.CTk):
             self.PartName_L_Data = customtkinter.CTkLabel(master=self, text=self.PartName_L[:30], text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), fg_color=("#00B400"), corner_radius=10)
             self.PartName_L_Data.place(x=150, y=220)
             self.NG_L = customtkinter.CTkButton(master=self, text="NG : " + str(self.CouterNG_Left), text_color="#FFFFFF", hover_color="#C80000", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=50, weight="bold"), corner_radius=10, fg_color=("#FF0000"),
-                                                command=lambda: self.ViewNG("NG_Left"))
+                                                command=lambda: self.ViewNG("NG_Left",self.PartNumber_L))
             self.NG_L.place(x=620, y=180)
             self.OK_L = customtkinter.CTkLabel(master=self, text="OK : " + str(self.CouterOK_Left), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=52, weight="bold"), corner_radius=10, fg_color=("#00B400"))
             self.OK_L.place(x=620, y=100)
@@ -704,7 +717,7 @@ class App(customtkinter.CTk):
             self.PartName_R_Data = customtkinter.CTkLabel(master=self, text=self.PartName_R[:30], text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), fg_color=("#00B400"), corner_radius=10)
             self.PartName_R_Data.place(x=1100, y=220)
             self.NG_R = customtkinter.CTkButton(master=self, text="NG : " + str(self.CouterNG_Right), text_color="#FFFFFF", hover_color="#C80000", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=50, weight="bold"), corner_radius=10, fg_color=("#FF0000"),
-                                                command=lambda: self.ViewNG("NG_Right"))
+                                                command=lambda: self.ViewNG("NG_Right",self.PartNumber_R))
             self.NG_R.place(x=1590, y=180)
             self.OK_R = customtkinter.CTkLabel(master=self, text="OK : " + str(self.CouterOK_Right), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=52, weight="bold"), corner_radius=10, fg_color=("#00B400"))
             self.OK_R.place(x=1590, y=100)
@@ -715,6 +728,7 @@ class App(customtkinter.CTk):
 
         elif len(self.API[1]) == 1:
             if self.API[1][0] == "Right":
+                self.ImageReal_Right = tk.Button(self, bg="White", command=lambda: self.ViewImagePart(self.PartNumber_R))
                 self.ImageReal_Right.place(x=960, y=260)
                 self.PartNumber_R = self.API[2][0]
                 self.BatchNumber_R = self.API[2][1]
@@ -741,7 +755,7 @@ class App(customtkinter.CTk):
                 self.PartName_R_Data = customtkinter.CTkLabel(master=self, text=self.PartName_R[:30], text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), fg_color=("#00B400"), corner_radius=10)
                 self.PartName_R_Data.place(x=1100, y=220)
                 self.NG_R = customtkinter.CTkButton(master=self, text="NG : " + str(self.CouterNG_Right), text_color="#FFFFFF", hover_color="#C80000", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=50, weight="bold"), corner_radius=10, fg_color=("#FF0000"),
-                                                    command=lambda: self.ViewNG("NG_Right"))
+                                                    command=lambda: self.ViewNG("NG_Right",self.PartNumber_R))
                 self.NG_R.place(x=1590, y=180)
                 self.OK_R = customtkinter.CTkLabel(master=self, text="OK : " + str(self.CouterOK_Right), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=52, weight="bold"), corner_radius=10, fg_color=("#00B400"))
                 self.OK_R.place(x=1590, y=100)
@@ -751,6 +765,8 @@ class App(customtkinter.CTk):
                 self.Packing_R_Show.place(x=1490, y=100)
 
             elif self.API[1][0] == "Left":
+                self.ImageReal_Right = tk.Button(self, bg="White", command=lambda: self.ViewImagePart(self.PartNumber_R))
+                self.ImageReal_Right.place(x=960, y=260)
                 self.ImageReal_Left.place(x=0, y=260)
                 self.PartNumber_L = self.API[2][0]
                 self.BatchNumber_L = self.API[2][1]
@@ -777,7 +793,7 @@ class App(customtkinter.CTk):
                 self.PartName_L_Data = customtkinter.CTkLabel(master=self, text=self.PartName_L[:30], text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), fg_color=("#00B400"), corner_radius=10)
                 self.PartName_L_Data.place(x=150, y=220)
                 self.NG_L = customtkinter.CTkButton(master=self, text="NG : " + str(self.CouterNG_Left), text_color="#FFFFFF", hover_color="#C80000", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=50, weight="bold"), corner_radius=10, fg_color=("#FF0000"),
-                                                    command=lambda: self.ViewNG("NG_Left"))
+                                                    command=lambda: self.ViewNG("NG_Left",self.PartNumber_L))
                 self.NG_L.place(x=620, y=180)
                 self.OK_L = customtkinter.CTkLabel(master=self, text="OK : " + str(self.CouterOK_Left), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=52, weight="bold"), corner_radius=10, fg_color=("#00B400"))
                 self.OK_L.place(x=620, y=100)
@@ -788,7 +804,6 @@ class App(customtkinter.CTk):
 
 
             elif self.API[1][0] == "Single":
-                self.ImageReal_Left.place(x=450, y=280)
                 self.PartNumber_S = self.API[2][0]
                 self.BatchNumber_S = self.API[2][1]
                 self.PartName_S = self.API[2][2]
@@ -796,6 +811,8 @@ class App(customtkinter.CTk):
                 self.Packing_S = self.API[2][4]
                 self.CouterPacking_Single = Packing.Read_Priter(self.PartNumber_S)
                 self.PartNumber = self.PartNumber_S + "|"+ "|"
+                self.ImageReal_Single = tk.Button(self, bg="White", command=lambda: self.ViewImagePart(self.PartNumber_S))
+                self.ImageReal_Single.place(x=450, y=280)
 
                 self.BKF_Part_S_Lable = customtkinter.CTkLabel(master=self, text="BKF Part :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"))
                 self.BKF_Part_S_Lable.place(x=450, y=100)
@@ -814,7 +831,7 @@ class App(customtkinter.CTk):
                 self.PartName_S_Data = customtkinter.CTkLabel(master=self, text=self.PartName_S[:30], text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), fg_color=("#00B400"), corner_radius=10)
                 self.PartName_S_Data.place(x=590, y=220)
                 self.NG_S = customtkinter.CTkButton(master=self, text="NG : " + str(self.CouterNG_Single), text_color="#FFFFFF", hover_color="#C80000", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=50, weight="bold"), corner_radius=10, fg_color=("#FF0000"),
-                                                    command=lambda: self.ViewNG("NG_Right"))
+                                                    command=lambda: self.ViewNG("NG_Single",self.PartNumber_S))
                 self.NG_S.place(x=1080, y=180)
                 self.OK_S = customtkinter.CTkLabel(master=self, text="OK : " + str(self.CouterOK_Single), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=52, weight="bold"), corner_radius=10, fg_color=("#00B400"))
                 self.OK_S.place(x=1080, y=100)
@@ -877,61 +894,130 @@ class App(customtkinter.CTk):
             self.ImageReal_Right.place_forget()
         except:
             pass
+        try:
+            self.ImageReal_Single.place_forget()
+        except:
+            pass
 
+    def ViewImagePart(self, Partnumber):
+        if self.ViewImage is False:
+            self.ViewImage = True
+            View = r"Image_Partnumber/" + Partnumber + ".png"
+            if os.path.isfile(View) is False:
+                View = r"BKF.png"
+            img = cv.imread(View, cv.COLOR_BGR2RGB)
+            cv.imshow(Partnumber, img)
+        self.ViewImage = False
 
-    def View_Point(self,color):
+    def View_Point_Clear(self):
         self.Frame_Point = customtkinter.CTkFrame(master=self, width=1980, height=270).place(x=0, y=810)
+    def View_Point_Left(self,color):
+        #self.Frame_Point = customtkinter.CTkFrame(master=self, width=1980, height=270).place(x=0, y=810)
         if self.PartNumber_L != "":
             for Point_Left in range(self.CouterPoint_Left):
                 if Point_Left <= 4:
-                    customtkinter.CTkLabel(master=self.Frame_Point, text="Point:" + str(Point_Left + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color)).place(x=190 * (Point_Left), y=850)
+                    customtkinter.CTkLabel(master=self.Frame_Point, text="Point:" + str(Point_Left + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color[Point_Left])).place(x=190 * (Point_Left), y=850)
                 elif Point_Left <= 9:
-                    customtkinter.CTkLabel(master=self.Frame_Point, text="Point:" + str(Point_Left + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color)).place(x=190 * (Point_Left - 5), y=930)
+                    customtkinter.CTkLabel(master=self.Frame_Point, text="Point:" + str(Point_Left + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color[Point_Left])).place(x=190 * (Point_Left - 5), y=930)
                 elif Point_Left <= 15:
-                    customtkinter.CTkLabel(master=self.Frame_Point, text="Point:" + str(Point_Left + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color)).place(x=190 * (Point_Left - 10), y=1010)
+                    customtkinter.CTkLabel(master=self.Frame_Point, text="Point:" + str(Point_Left + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color[Point_Left])).place(x=190 * (Point_Left - 10), y=1010)
+    def View_Point_Right(self, color):
         if self.PartNumber_R != "":
             for Point_Right in range(self.CouterPoint_Right):
                 if Point_Right <= 4:
-                    customtkinter.CTkLabel(master=self.Frame_Point, text="Point:" + str(Point_Right + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color)).place(x=960 + (Point_Right * 190), y=850)
+                    customtkinter.CTkLabel(master=self.Frame_Point, text="Point:" + str(Point_Right + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color[Point_Right])).place(x=960 + (Point_Right * 190), y=850)
                 elif Point_Right <= 9:
-                    customtkinter.CTkLabel(master=self.Frame_Point, text="Point:" + str(Point_Right + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color)).place(x=960 + ((Point_Right - 5) * 190), y=930)
+                    customtkinter.CTkLabel(master=self.Frame_Point, text="Point:" + str(Point_Right + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color[Point_Right])).place(x=960 + ((Point_Right - 5) * 190), y=930)
                 elif Point_Right <= 15:
-                    customtkinter.CTkLabel(master=self.Frame_Point, text="Point:" + str(Point_Right + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color)).place(x=960 + ((Point_Right - 10) * 190), y=1010)
-        if self.PartNumber_S != "":
+                    customtkinter.CTkLabel(master=self.Frame_Point, text="Point:" + str(Point_Right + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color[Point_Right])).place(x=960 + ((Point_Right - 10) * 190), y=1010)
+    def View_Point_Single(self,color):
+       if self.PartNumber_S != "":
             for Point_Single in range(self.CouterPoint_Single):
                 if Point_Single <= 4:
-                    customtkinter.CTkLabel(master=self.Frame_Point, text="Point:" + str(Point_Single + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color)).place(x=450 + (Point_Single * 190), y=850)
+                    customtkinter.CTkLabel(master=self.Frame_Point, text="Point:" + str(Point_Single + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color[Point_Single])).place(x=450 + (Point_Single * 190), y=850)
                 elif Point_Single <= 9:
-                    customtkinter.CTkLabel(master=self.Frame_Point, text="Point:" + str(Point_Single + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color)).place(x=450 + ((Point_Single - 5) * 190), y=930)
+                    customtkinter.CTkLabel(master=self.Frame_Point, text="Point:" + str(Point_Single + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color[Point_Single])).place(x=450 + ((Point_Single - 5) * 190), y=930)
                 elif Point_Single <= 15:
-                    customtkinter.CTkLabel(master=self.Frame_Point, text="Point:" + str(Point_Single + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color)).place(x=450 + ((Point_Single - 10) * 190), y=1010)
+                    customtkinter.CTkLabel(master=self.Frame_Point, text="Point:" + str(Point_Single + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color[Point_Single])).place(x=450 + ((Point_Single - 10) * 190), y=1010)
 
-    def ViewNG(self, Side):
+    def ViewNG(self, Side, Partnumber):
         ViewNG = Toplevel(self)
         ViewNG.title(Side)
         PointNG = []
         if Side == "NG_Left":
             Counter = self.CouterPoint_Left
+
         elif Side == "NG_Right":
             Counter = self.CouterPoint_Right
+        elif Side == "NG_Single":
+            Counter = self.CouterPoint_Single
         for i in range(Counter):
             PointNG.append("Point" + str(i + 1))
         PointNG_value = customtkinter.StringVar()
         customtkinter.CTkComboBox(ViewNG, variable=PointNG_value, values=PointNG,
                                   corner_radius=10, border_color="#C5C5C5", text_color="#FF3939", border_width=5, width=200, height=50, font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), button_hover_color="#B4F0B4", button_color="#C5C5C5",
                                   dropdown_hover_color="#B4F0B4", dropdown_text_color="#FF3939", dropdown_font=("Microsoft PhagsPa", 20)).place(x=10, y=10)
-        customtkinter.CTkButton(ViewNG, text="Commit", text_color="#FF3939", hover_color="#FF9797", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=35, weight="bold"), corner_radius=10, fg_color=("#353535")).place(x=35, y=70)
+        customtkinter.CTkButton(ViewNG, text="Chose", text_color="#FF3939", hover_color="#FF9797", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=35, weight="bold"), corner_radius=10, fg_color=("#353535"),command=lambda : ShowImageNG(PointNG_value.get(),Partnumber)).place(x=220, y=10)
+        customtkinter.CTkButton(ViewNG, text="Exit", text_color="#FF3939", hover_color="#FF9797", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=35, weight="bold"), corner_radius=10, fg_color=("#353535"),command=lambda : Destory()).place(x=1770, y=5)
+
         ViewNG.configure(background='#232323')
-        ViewNG.geometry('220x120')
+        ViewNG.attributes('-fullscreen', True)
+
+        def Destory():
+            ViewNG.destroy()
+
+        def ShowImageNG(Point,Part):
+            """""""""
+                resize_img = image1.resize((545, 340))
+                #self.test = ImageTk.PhotoImage(resize_img)
+                #self.image_show = tk.Label(image=self.test, bg="black")
+                #self.image_show.image = self.test
+                #self.image_show.place(x=395, y=305)
+            """""""""
+            Image_NG = []
+            #Point =  PointNG_value.get()
+            #image_path_Master = r""+Part+"/Master/"+Point+'_Master.png'
+            image_path_Master = Partnumber+'/Master/'+Point+'_Master.png'
+            image = cv.imread(image_path_Master)
+            image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
+            photo = ImageTk.PhotoImage(Image.fromarray(image))
+            image_show = tk.Label(ViewNG,image=photo)
+            image_show.image = photo
+            image_show.place(x=400,y=50)
+            #cv.imshow("xxx",image)
+            #im = Image.fromarray(image)
+            #resize_img = im.resize((545, 340))
+            #imgtk = ImageTk.PhotoImage(image=resize_img)
+            #image_show = tk.Label(image=test, bg="black")
+            #image_show.image = test
+            #image_show.place(x=395, y=305)
+            #image_path_Master = Partnumber + '/Master/' + Point + '_Master.png'
+            #image_path_Master = Partnumber + '/Master/Point1_Master.png'
+            #image_path_Master = Part + '/Master/' + Point + '_Master.png'
+            #image = cv.imread(image_path_Master)
+            #image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
+            #im = Image.fromarray(image)
+            """""""""
+            image_path_NG = 'Record/'+ Partnumber + "/NG/"+Point
+            Counter_Image = 0
+            for path in os.listdir(image_path_NG):
+                if os.path.isfile(os.path.join(image_path_NG, path)):
+                    if path.endswith('.jpg'):
+                        Image.append(path)
+                        Counter_Image += 1
+            print(Image)
+            """""""""
+
+
 
 
     def Processing(self):
         if self.data == "Snap1":
             if self.CouterPoint_Left != 0:
-                self.Run_Left = True
+                self.Run_Single = True
                 Filename = "Current.png"
                 cv.imwrite(Filename, frame0.read()[1])
-                ImageSave, ColorView, Color_Save_Image, Result, Score = Main.Main(self.PartNumber_S, Filename, self.CouterPoint_Single, self.Point_Mode_S, self.Point_Left_S, self.Point_Top_S, self.Point_Right_S, self.Point_Bottom_S, self.Point_Score_S, self.Point_Color_S)
+                ImageSave, ColorView, Color_Save_Image, Result, Score, Color_Point = Main.Main(self.PartNumber_S, Filename, self.CouterPoint_Single, self.Point_Mode_S, self.Point_Left_S, self.Point_Top_S, self.Point_Right_S, self.Point_Bottom_S, self.Point_Score_S, self.Point_Color_S)
                 image = Main.ViewImage_Snap(Filename, self.CouterPoint_Single, self.Point_Left_S, self.Point_Top_S, self.Point_Right_S, self.Point_Bottom_S, Score, ColorView)
                 Save_Data.Save_Image(self.PartNumber_S, self.CouterPoint_Single, ImageSave, self.Point_Mode_S, self.Point_Left_S, self.Point_Top_S, self.Point_Right_S, self.Point_Bottom_S, Color_Save_Image, Score, self.Point_Score_S, Result)
                 Save_Data.Save_Score(self.PartNumber_S, self.BatchNumber_S, self.MachineName, self.CouterPoint_Single, Score, Result)
@@ -946,10 +1032,9 @@ class App(customtkinter.CTk):
                     self.message = "NG"
                     self.CouterNG_Single = self.CouterNG_Single + 1
                     self.NG_S.configure(text="NG : " + str(self.CouterNG_Single))
-                self.ImageReal_Left.imgtk = image
-                self.ImageReal_Left.configure(image=image)
-                color ="#00B400"
-                self.View_Point(color)
+                self.ImageReal_Single.imgtk = image
+                self.ImageReal_Single.configure(image=image)
+                self.View_Point_Single(Color_Point)
 
 
         elif self.data == "Snap2":
@@ -957,8 +1042,7 @@ class App(customtkinter.CTk):
                 self.Run_Left = True
                 Filename = "Current.png"
                 cv.imwrite(Filename, frame0.read()[1])
-                ImageSave, ColorView, Color_Save_Image, Result, Score = Main.Main(self.PartNumber_L,Filename,self.CouterPoint_Left,self.Point_Mode_L,self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L,self.Point_Score_L,self.Point_Color_L)
-                #self.Ready = True
+                ImageSave, ColorView, Color_Save_Image, Result, Score ,Color_Point = Main.Main(self.PartNumber_L,Filename,self.CouterPoint_Left,self.Point_Mode_L,self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L,self.Point_Score_L,self.Point_Color_L)
                 image = Main.ViewImage_Snap(Filename, self.CouterPoint_Left,self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L, Score, ColorView)
                 Save_Data.Save_Image(self.PartNumber_L,self.CouterPoint_Left,ImageSave,self.Point_Mode_L,self.Point_Left_L,self.Point_Top_L,self.Point_Right_L,self.Point_Bottom_L,Color_Save_Image,Score,self.Point_Score_L,Result)
                 Save_Data.Save_Score(self.PartNumber_L, self.BatchNumber_L, self.MachineName,self.CouterPoint_Left,Score,Result)
@@ -975,13 +1059,14 @@ class App(customtkinter.CTk):
                     self.NG_L.configure(text="NG : " + str(self.CouterNG_Left))
                 self.ImageReal_Left.imgtk = image
                 self.ImageReal_Left.configure(image=image)
+                self.View_Point_Left(Color_Point)
 
         elif self.data == "Snap3":
             if self.CouterPoint_Right != 0:
                 self.Run_Right = True
                 Filename = "Current.png"
                 cv.imwrite(Filename, frame1.read()[1])
-                ImageSave, ColorView, Color_Save_Image, Result, Score = Main.Main(self.PartNumber_R,Filename,self.CouterPoint_Right,self.Point_Mode_R,self.Point_Left_R, self.Point_Top_R, self.Point_Right_R, self.Point_Bottom_R,self.Point_Score_R,self.Point_Color_R)
+                ImageSave, ColorView, Color_Save_Image, Result, Score, Color_Point = Main.Main(self.PartNumber_R,Filename,self.CouterPoint_Right,self.Point_Mode_R,self.Point_Left_R, self.Point_Top_R, self.Point_Right_R, self.Point_Bottom_R,self.Point_Score_R,self.Point_Color_R)
                 image = Main.ViewImage_Snap(Filename, self.CouterPoint_Right, self.Point_Left_R, self.Point_Top_R, self.Point_Right_R, self.Point_Bottom_R, Score, ColorView)
                 Save_Data.Save_Image(self.PartNumber_R,self.CouterPoint_Right,ImageSave,self.Point_Mode_R,self.Point_Left_R,self.Point_Top_R,self.Point_Right_R,self.Point_Bottom_R,Color_Save_Image,Score,self.Point_Score_R,Result)
                 Save_Data.Save_Score(self.PartNumber_R, self.BatchNumber_R, self.MachineName,self.CouterPoint_Right,Score,Result)
@@ -991,13 +1076,14 @@ class App(customtkinter.CTk):
                     self.CouterOK_Right = self.CouterOK_Right + 1
                     self.OK_R.configure(text="NG : " + str(self.CouterOK_Right))
                     packing_counter = Packing.Counter_Printer(self.PartNumber_R, self.Packing_R)
-                    self.Packing_R.configure(text=str(packing_counter) + "/" + str(self.Packing_R))
+                    self.Packing_R_Show.configure(text=str(packing_counter) + "/" + str(self.Packing_R))
                 elif Data is False:
                     self.message = "NG"
                     self.CouterNG_Right = self.CouterNG_Right + 1
                     self.NG_R.configure(text="NG : " + str(self.CouterNG_Right))
                 self.ImageReal_Right.imgtk = image
                 self.ImageReal_Right.configure(image=image)
+                self.View_Point_Right(Color_Point)
 
 
     def client_program(self):
@@ -1047,23 +1133,37 @@ class App(customtkinter.CTk):
     def Destory(self):
         app.destroy()
 
-
     def Camera(self):
-        self.Camera_1 = cv.cvtColor(frame0.read()[1], cv.COLOR_BGR2RGB)
-        Camera_1 = Image.fromarray(self.Camera_1)
-        Resize_1 = Camera_1.resize((950, 520))
-        self.Commit_1 = ImageTk.PhotoImage(image=Resize_1)
-        self.Camera_2 = cv.cvtColor(frame1.read()[1], cv.COLOR_BGR2RGB)
-        Camera_2 = Image.fromarray(self.Camera_2)
-        Resize_2 = Camera_2.resize((950, 520))
-        self.Commit_2 = ImageTk.PhotoImage(image=Resize_2)
-        if self.Run_Left == False:
-            self.ImageReal_Left.imgtk = self.Commit_1
-            self.ImageReal_Left.configure(image=self.Commit_1)
-        if self.Run_Right == False:
-            self.ImageReal_Right.imgtk = self.Commit_2
-            self.ImageReal_Right.configure(image=self.Commit_2)
-        self.after(20, self.Camera)
+            self.Camera_1 = cv.cvtColor(frame0.read()[1], cv.COLOR_BGR2RGB)
+            Camera_1 = Image.fromarray(self.Camera_1)
+            Resize_1 = Camera_1.resize((950, 520))
+            self.Commit_1 = ImageTk.PhotoImage(image=Resize_1)
+            self.Camera_2 = cv.cvtColor(frame1.read()[1], cv.COLOR_BGR2RGB)
+            Camera_2 = Image.fromarray(self.Camera_2)
+            Resize_2 = Camera_2.resize((950, 520))
+            self.Commit_2 = ImageTk.PhotoImage(image=Resize_2)
+            if len(self.API[1]) == 2:
+                if self.Run_Left == False:
+                    self.ImageReal_Left.imgtk = self.Commit_1
+                    self.ImageReal_Left.configure(image=self.Commit_1)
+                if self.Run_Right == False:
+                    self.ImageReal_Right.imgtk = self.Commit_2
+                    self.ImageReal_Right.configure(image=self.Commit_2)
+            if len(self.API[1]) == 1:
+                if self.API[1][0] == "Single":
+                    if self.Run_Single == False:
+                        self.ImageReal_Single.imgtk = self.Commit_1
+                        self.ImageReal_Single.configure(image=self.Commit_1)
+                elif self.API[1][0] == "Right":
+                    if self.Run_Right == False:
+                        self.ImageReal_Right.imgtk = self.Commit_2
+                        self.ImageReal_Right.configure(image=self.Commit_2)
+                elif self.API[1][0] == "Left":
+                    if self.Run_Left == False:
+                        self.ImageReal_Left.imgtk = self.Commit_1
+                        self.ImageReal_Left.configure(image=self.Commit_1)
+
+            self.after(20, self.Camera)
 
     def AddMaster(self):
         customtkinter.CTkButton(master=self, text="Add-master", text_color="#00B400", hover_color="#B4F0B4", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=("#353535"), command=self.SaveMasterNewWindow).place(x=1300, y=10)
@@ -1074,25 +1174,41 @@ class App(customtkinter.CTk):
         customtkinter.CTkLabel(master=self, text="Write : ", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold")).place(x=850, y=30)
         customtkinter.CTkLabel(master=self, text="TCP", text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), corner_radius=10, fg_color=("#00B400")).place(x=940, y=30)
 
+    def Close_SaveMasterNewWindow(self):
+        self.Login.destroy()
+        self.Login = None
     def SaveMasterNewWindow(self):
-        Login = Toplevel(self)
-        Login.title("Login")
-        Login.configure(background='#232323')
-        Login.geometry('220x120')
-        Password = tk.StringVar()
-        Password.trace("w", lambda *args: character_limit())
+        if not self.Login:
+            self.Login = Toplevel(self)
+            self.Login.protocol("WM_DELETE_WINDOW", self.Close_SaveMasterNewWindow)
+            self.Login.title("Login")
+            self.Login.wm_attributes("-topmost", 0)
+            self.Login.configure(background='#232323')
+            self.Login.geometry('220x140')
+            self.Login.grab_set()
+            self.Password = tk.StringVar()
+            self.Password.trace("w", lambda *args: character_limit())
 
-        def Loginform():
-            with open('Information\Operator.json', 'r') as json_Part:
-                json_object = json.loads(json_Part.read())
-                id_Emp = []
-                for d in json_object:
-                    id_Emp.append(d['id_Emp'])
-            for i in range(len(id_Emp)):
-                if id_Emp[i] == Password.get():
-                    return True
-            messagebox.showwarning("Password", "Wrong password did not match")
-            return False
+            def character_limit():
+                try:
+                    if len(self.Password.get()) > 0:
+                        self.Password.set(self.Password.get()[6])
+                except:
+                    pass
+            self.Error_passWord = customtkinter.CTkLabel(self.Login,text="", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=10, weight="bold"),text_color="red")
+            self.Error_passWord.place(x=10,y=0)
+            customtkinter.CTkEntry(self.Login, width=200, height=50, corner_radius=10, placeholder_text="Password", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), show='*', textvariable=self.Password).place(x=10, y=20)
+            def Loginform():
+                with open('Information\Operator.json', 'r') as json_Part:
+                    json_object = json.loads(json_Part.read())
+                    id_Emp = []
+                    for d in json_object:
+                        id_Emp.append(d['id_Emp'])
+                for i in range(len(id_Emp)):
+                    if id_Emp[i] == self.Password.get():
+                        return True
+                self.Error_passWord.configure(text='Wrong password did not match')
+                return False
 
             """""""""""
             with urllib.request.urlopen("http://192.168.1.48:89/RobotAPI/GetEmp") as response:
@@ -1109,11 +1225,14 @@ class App(customtkinter.CTk):
 
         def Search():
             if Loginform():
-                Login.destroy()
+                self.Login.destroy()
+                self.Login = None
+                #self.Login.protocol("WM_DELETE_WINDOW", self.Close_SaveMasterNewWindow)
                 SaveMaster = Toplevel(self)
                 SaveMaster.title("Save Master")
                 SaveMaster.configure(background='#232323')
                 SaveMaster.geometry('330x470')
+                SaveMaster.grab_set()
                 Score_Data_Area = tk.StringVar()
                 Score_Data_Area.trace("w", lambda *args: score_limit(Score_Data_Area))
                 Score_Data_Outline = tk.StringVar()
@@ -1121,7 +1240,7 @@ class App(customtkinter.CTk):
 
                 def Save_Master():
                     Point = Point_value.get()
-                    Emp_ID = Password.get()
+                    Emp_ID = self.Password.get()
                     Score = Score_value.get()
                     Mode = Mode_value.get()
                     if str.isdigit(Score) and int(Score) >= 500:
@@ -1165,10 +1284,11 @@ class App(customtkinter.CTk):
                                     Right = refPt[1][0]
                                     Bottom = refPt[1][1]
                                     img = Image.fromarray(x)
-                                    Showtext = cv.putText(image, "Save image " + Point + "", (10, 25),
+                                    Showtext = cv.putText(image, "Image Save " + Point + "", (10, 25),
                                                           cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1)
                                     cv.imshow(Point, Showtext)
                                     img.save('' + Create + '/' + Point + '_Template.bmp')
+                                    cv.imwrite('' + Create + '/' + Point + '_Master.bmp', image)
                                     if Left and Top and Right and Bottom != 0:
                                         Save_Data.Master(Left, Top, Right, Bottom, Score, Point, Emp_ID, Mode, Partnumber)
 
@@ -1230,17 +1350,8 @@ class App(customtkinter.CTk):
                 Score_value.trace("w", score_limit)
                 SaveMaster.mainloop()
 
-        def character_limit():
-            try:
-                if len(Password.get()) > 0:
-                    Password.set(Password.get()[6])
-            except:
-                pass
-
-        # text_color="#00B400", hover_color="#B4F0B4", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=("#353535")
-        customtkinter.CTkEntry(Login, width=200, height=50, corner_radius=10, placeholder_text="Password", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), show='*', textvariable=Password).place(x=10, y=5)
-        customtkinter.CTkButton(Login, text="Login", text_color="#00B400", hover_color="#B4F0B4", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=30, weight="bold"), corner_radius=10, fg_color=("#353535"), command=Search).place(x=40, y=70)
-        Login.mainloop()
+        customtkinter.CTkButton(self.Login, text="Login", text_color="#00B400", hover_color="#B4F0B4", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=30, weight="bold"), corner_radius=10, fg_color=("#353535"), command=Search).place(x=40, y=90)
+        self.Login.deiconify()
 
     def change_scaling_event(self,new_scaling: str):
         new_scaling_float = int(self.scaling_optionemenu.get().replace("%", "")) / 100
