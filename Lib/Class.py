@@ -63,27 +63,22 @@ imagegaussianblur = convolve2d(input_image, kernel=np.array([[1, 2, 1], [2, 4, 2
 cv2.imwrite(IMAGES_PATH + 'gaussian_blur.jpg', imagegaussianblur)
     
     """""""""""
-import json
-import logging
-import os
-import time
-import tkinter as tk
-import urllib.request
-import urllib.request
-from threading import Timer
-from tkinter import ttk
-from tkinter.ttk import Notebook, Style
-import cv2 as cv
-#import pyvisa
-from PIL import Image
-from PIL import ImageTk
-#from pygame import mixer
-from tkinter import messagebox
-import sys
-import subprocess
-Partnumber = "TMT7A31SOO"
-Point = "Point1"
-image_path_Master = Partnumber + '/Master/' + Point + '_Master.png'
-image1 = cv.imread(image_path_Master)
-image = cv.cvtColor(image1, cv.COLOR_BGR2RGB)
-im = Image.fromarray(image)
+from tkinter import *
+number = 0
+
+window = Tk()
+window.title("Programme")
+window.geometry('350x250')
+
+label = Label(window, text=number)
+label.grid(column=0,row=0)
+
+def clicked():
+    global number
+    number += 1
+    label.config(text=number)
+
+button = Button(window, text="Push Me", command=clicked)
+button.grid(column=1, row=2)
+
+window.mainloop()

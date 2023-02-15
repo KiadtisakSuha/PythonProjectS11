@@ -57,7 +57,7 @@ class GetAPI:
         method = ["PartNumber", "BatchNumber", "PartName", "CustomerPartNumber", "PackingStd"]
         side = []
         data = []
-        api_url = "https://api.bkf.co.th/APIGateway_DB_BKF/GetCurrentMachineStatus?machineNickName=S02"
+        api_url = "https://api.bkf.co.th/APIGateway_DB_BKF/GetCurrentMachineStatus?machineNickName=S03"
         data_file = 'Part.json'
 
         try:
@@ -451,10 +451,11 @@ class App(customtkinter.CTk):
         self.Login = None
         self.ViewImage = False
 
+        self.View_Point_Clear()
         self.View()
         self.ReadFile()
         self.ReadFileScore()
-        self.View_Point_Clear()
+
 
 
         self.Image_logo = GetImage()
@@ -781,7 +782,6 @@ class App(customtkinter.CTk):
                     if path.endswith('.bmp'):
                         self.CouterPoint_Single += 1
             self.CouterPoint_Single = int(self.CouterPoint_Single / 2)
-            #print(self.CouterPoint_Single)
         except FileNotFoundError as ex:
             self.CouterPoint_Single = 0
 
@@ -822,7 +822,8 @@ class App(customtkinter.CTk):
                         Color_Left.append("#A9A9A9")
                     self.View_Point_Left(Color_Left)
             else:
-                messagebox.showwarning("Warning", "MasterImage & MasterData Dont's Match")
+                pass
+                #messagebox.showwarning("Warning", "MasterImage & MasterData Dont's Match")
         except:
             pass
         try:
@@ -861,7 +862,8 @@ class App(customtkinter.CTk):
                         Color_Right.append("#A9A9A9")
                     self.View_Point_Right(Color_Right)
             else:
-                messagebox.showwarning("Warning", "MasterImage & MasterData Dont's Match")
+                pass
+                #messagebox.showwarning("Warning", "MasterImage & MasterData Dont's Match")
         except:
             pass
 
@@ -947,6 +949,11 @@ class App(customtkinter.CTk):
                     customtkinter.CTkLabel(master=self.Frame_Point, text="Point:" + str(Point_Single + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color[Point_Single])).place(x=450 + ((Point_Single - 10) * 190), y=1010)
 
     def ViewNG(self, Side, Partnumber):
+        self.Image_NG = []
+        self.Next = 0
+        self.Previous = 0
+        self.Couter_Image = 0
+        self.Stand = False
         ViewNG = Toplevel(self)
         ViewNG.title(Side)
         PointNG = []
@@ -961,58 +968,88 @@ class App(customtkinter.CTk):
             PointNG.append("Point" + str(i + 1))
         PointNG_value = customtkinter.StringVar()
         customtkinter.CTkComboBox(ViewNG, variable=PointNG_value, values=PointNG,
-                                  corner_radius=10, border_color="#C5C5C5", text_color="#FF3939", border_width=5, width=200, height=50, font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), button_hover_color="#B4F0B4", button_color="#C5C5C5",
-                                  dropdown_hover_color="#B4F0B4", dropdown_text_color="#FF3939", dropdown_font=("Microsoft PhagsPa", 20)).place(x=10, y=10)
-        customtkinter.CTkButton(ViewNG, text="Chose", text_color="#FF3939", hover_color="#FF9797", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=35, weight="bold"), corner_radius=10, fg_color=("#353535"),command=lambda : ShowImageNG(PointNG_value.get(),Partnumber)).place(x=220, y=10)
+                                  corner_radius=10, border_color="#C5C5C5", text_color="#00B400", border_width=5, width=200, height=50, font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), button_hover_color="#B4F0B4", button_color="#C5C5C5",
+                                  dropdown_hover_color="#B4F0B4", dropdown_text_color="#00B400", dropdown_font=("Microsoft PhagsPa", 20)).place(x=10, y=10)
+        customtkinter.CTkButton(ViewNG, text="Choose", text_color="#00B400", hover_color="#94FF8B", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=35, weight="bold"), corner_radius=10, fg_color=("#353535"),command=lambda : ShowImageNG()).place(x=220, y=10)
         customtkinter.CTkButton(ViewNG, text="Exit", text_color="#FF3939", hover_color="#FF9797", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=35, weight="bold"), corner_radius=10, fg_color=("#353535"),command=lambda : Destory()).place(x=1770, y=5)
+
+        customtkinter.CTkButton(ViewNG, text="Previous", text_color="#00B400", hover_color="#94FF8B", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=50, weight="bold"), corner_radius=10, fg_color=("#353535"),command= lambda : Previous()).place(x=700, y=800)
+        customtkinter.CTkButton(ViewNG, text="Next", text_color="#00B400", hover_color="#94FF8B", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=50, weight="bold"), corner_radius=10, fg_color=("#353535"),command= lambda : Next()).place(x=1000, y=800)
+
 
         ViewNG.configure(background='#232323')
         ViewNG.attributes('-fullscreen', True)
-
         def Destory():
             ViewNG.destroy()
 
-        def ShowImageNG(Point,Part):
-            """""""""
-                resize_img = image1.resize((545, 340))
-                #self.test = ImageTk.PhotoImage(resize_img)
-                #self.image_show = tk.Label(image=self.test, bg="black")
-                #self.image_show.image = self.test
-                #self.image_show.place(x=395, y=305)
-            """""""""
+        def ReadImageNG():
             Image_NG = []
-            #Point =  PointNG_value.get()
-            #image_path_Master = r""+Part+"/Master/"+Point+'_Master.png'
-            image_path_Master = Partnumber+'/Master/'+Point+'_Master.png'
-            image = cv.imread(image_path_Master)
-            image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
-            photo = ImageTk.PhotoImage(Image.fromarray(image))
-            image_show = tk.Label(ViewNG,image=photo)
-            image_show.image = photo
-            image_show.place(x=400,y=50)
-            #cv.imshow("xxx",image)
-            #im = Image.fromarray(image)
-            #resize_img = im.resize((545, 340))
-            #imgtk = ImageTk.PhotoImage(image=resize_img)
-            #image_show = tk.Label(image=test, bg="black")
-            #image_show.image = test
-            #image_show.place(x=395, y=305)
-            #image_path_Master = Partnumber + '/Master/' + Point + '_Master.png'
-            #image_path_Master = Partnumber + '/Master/Point1_Master.png'
-            #image_path_Master = Part + '/Master/' + Point + '_Master.png'
-            #image = cv.imread(image_path_Master)
-            #image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
-            #im = Image.fromarray(image)
-            """""""""
-            image_path_NG = 'Record/'+ Partnumber + "/NG/"+Point
-            Counter_Image = 0
+            Point = PointNG_value.get()
+            image_path_NG = 'Record/' + Partnumber + "/NG/" + Point
             for path in os.listdir(image_path_NG):
                 if os.path.isfile(os.path.join(image_path_NG, path)):
                     if path.endswith('.jpg'):
-                        Image.append(path)
-                        Counter_Image += 1
-            print(Image)
-            """""""""
+                        Image_NG.append(path)
+            return Image_NG,Point
+
+
+        def Next():
+            if self.Stand is True:
+                self.Image_NG, Point = ReadImageNG()
+                self.Previous = len(self.Image_NG) - 1
+                Point = PointNG_value.get()
+                image_path_NG = "Record/" + Partnumber + "/NG/" + Point + "/" + self.Image_NG[self.Next+1]
+                self.Next += 1
+                if len(self.Image_NG) > self.Next:
+                    imageNG = cv.imread(image_path_NG)
+                    imageNG = cv.cvtColor(imageNG, cv.COLOR_BGR2RGB)
+                    imageNG = Image.fromarray(imageNG)
+                    photoNG = ImageTk.PhotoImage(imageNG.resize((900, 630)))
+                    image_show_NG = tk.Label(ViewNG, image=photoNG)
+                    image_show_NG.image = photoNG
+                    image_show_NG.place(x=1000, y=100)
+
+        def Previous():
+            self.Next = 0
+            self.Stand = True
+            Point = PointNG_value.get()
+            image_path_NG = "Record/" + Partnumber + "/NG/" + Point + "/" + self.Image_NG[self.Previous-1]
+            if self.Previous >= 1:
+                self.Previous -= 1
+                imageNG = cv.imread(image_path_NG)
+                imageNG = cv.cvtColor(imageNG, cv.COLOR_BGR2RGB)
+                imageNG = Image.fromarray(imageNG)
+                photoNG = ImageTk.PhotoImage(imageNG.resize((900, 630)))
+                image_show_NG = tk.Label(ViewNG, image=photoNG)
+                image_show_NG.image = photoNG
+                image_show_NG.place(x=1000, y=100)
+
+        def ShowImageNG():
+            self.Stand = False
+            Point = PointNG_value.get()
+            image_path_Master = Partnumber+'/Master/'+Point+'_Master.bmp'
+            image = cv.imread(image_path_Master)
+            image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
+            image = Image.fromarray(image)
+            photo = ImageTk.PhotoImage(image.resize((900, 630)))
+            image_show = tk.Label(ViewNG,image=photo)
+            image_show.image = photo
+            image_show.place(x=10,y=100)
+
+            self.Image_NG, Point = ReadImageNG()
+            self.Previous = len(self.Image_NG)-1
+            image_path_NG = "Record/" + Partnumber + "/NG/" + Point + "/" + self.Image_NG[self.Previous]
+            imageNG = cv.imread(image_path_NG)
+            imageNG = cv.cvtColor(imageNG, cv.COLOR_BGR2RGB)
+            imageNG = Image.fromarray(imageNG)
+            photoNG = ImageTk.PhotoImage(imageNG.resize((900, 630)))
+            image_show_NG = tk.Label(ViewNG, image=photoNG)
+            image_show_NG.image = photoNG
+            image_show_NG.place(x=1000, y=100)
+
+
+
+
 
 
 
