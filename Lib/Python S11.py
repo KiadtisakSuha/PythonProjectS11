@@ -453,6 +453,7 @@ class App(customtkinter.CTk):
 
         self.View()
         self.ReadFile()
+        self.ReadFileScore()
         self.View_Point_Clear()
 
 
@@ -466,7 +467,7 @@ class App(customtkinter.CTk):
         #self.Loop = InfiniteTimer(0.1, self.client_program)
         #self.Loop.start()
         self.Keepdata = ""
-        self.ReadFileScore()
+
         self.TCP()
         self.AddMaster()
 
@@ -481,155 +482,6 @@ class App(customtkinter.CTk):
         #self.scaling_optionemenu.place(x=1000, y=80)
         customtkinter.CTkButton(master=self, text="Reorder", text_color="#00B400", hover_color="#B4F0B4", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=("#353535"),
                                 command=lambda: [self.forget(),self.View_Point_Clear(),self.View(),self.ReadFile(), self.ReadFileScore()]).place(x=1570, y=10)
-
-
-
-
-
-
-
-    def ReadFile(self):
-        try:
-            self.CouterPoint_Left = 0
-            self.dir_path = r"" + self.PartNumber_L + "\Master"
-            for path in os.listdir(self.dir_path):
-                if os.path.isfile(os.path.join(self.dir_path, path)):
-                    if path.endswith('.bmp'):
-                        self.CouterPoint_Left += 1
-        except FileNotFoundError as ex:
-            self.CouterPoint_Left = 0
-        try:
-            self.CouterPoint_Right = 0
-            self.dir_path = r"" + self.PartNumber_R + "\Master"
-            for path in os.listdir(self.dir_path):
-                if os.path.isfile(os.path.join(self.dir_path, path)):
-                    if path.endswith('.bmp'):
-                        self.CouterPoint_Right += 1
-        except FileNotFoundError as ex:
-            self.CouterPoint_Right = 0
-
-        try:
-            self.CouterPoint_Single = 0
-            self.dir_path = r"" + self.PartNumber_S + "\Master"
-            for path in os.listdir(self.dir_path):
-                if os.path.isfile(os.path.join(self.dir_path, path)):
-                    if path.endswith('.bmp'):
-                        self.CouterPoint_Single += 1
-        except FileNotFoundError as ex:
-            self.CouterPoint_Single = 0
-
-    def ReadFileScore(self):
-        try:
-            with open(self.PartNumber_L + '/' + self.PartNumber_L + '.json', 'r') as json_file:
-                Master_Left = json.loads(json_file.read())
-            if self.CouterPoint_Left != 0:
-                self.Point_Left_L = []
-                self.Point_Top_L = []
-                self.Point_Right_L = []
-                self.Point_Bottom_L = []
-                self.Point_Score_L = []
-                self.Point_Mode_L = []
-                self.Point_Color_L = []
-                Color_Left = []
-                for L in range(self.CouterPoint_Left):
-                    FileFolder_Ok = 'Record/' + self.PartNumber_L +'/OK/Point' + str(L + 1)
-                    path = os.path.join(FileFolder_Ok)
-                    try:
-                        os.makedirs(path, exist_ok=True)
-                    except OSError as error:
-                        pass
-                    FileFolder_NG = 'Record/' + self.PartNumber_L +'/NG/Point' + str(L + 1)
-                    path = os.path.join(FileFolder_NG)
-                    try:
-                        os.makedirs(path, exist_ok=True)
-                    except OSError as error:
-                        pass
-                    self.Point_Mode_L.append(Master_Left[L]["Point" + str(L + 1)][0]["Mode"])
-                    self.Point_Left_L.append(Master_Left[L]["Point" + str(L + 1)][0]["Left"])
-                    self.Point_Top_L.append(Master_Left[L]["Point" + str(L + 1)][0]["Top"])
-                    self.Point_Right_L.append(Master_Left[L]["Point" + str(L + 1)][0]["Right"])
-                    self.Point_Bottom_L.append(Master_Left[L]["Point" + str(L + 1)][0]["Bottom"])
-                    self.Point_Score_L.append(Master_Left[L]["Point" + str(L + 1)][0]["Score"])
-                    self.Point_Color_L.append(Master_Left[L]["Point" + str(L + 1)][0]["Color"])
-                    Color_Left.append("#A9A9A9")
-                self.View_Point_Left(Color_Left)
-
-        except:
-            pass
-        try:
-            with open(self.PartNumber_R  + '/' + self.PartNumber_R  + '.json', 'r') as json_file:
-                Master_Right = json.loads(json_file.read())
-            if self.CouterPoint_Right != 0:
-                self.Point_Left_R = []
-                self.Point_Top_R = []
-                self.Point_Right_R = []
-                self.Point_Bottom_R = []
-                self.Point_Score_R = []
-                self.Point_Mode_R = []
-                self.Point_Color_R = []
-                Color_Right = []
-                for R in range(self.CouterPoint_Right):
-                    FileFolder_Ok = 'Record/' + self.PartNumber_R  +'/OK/Point' + str(R + 1)
-                    path = os.path.join(FileFolder_Ok)
-                    try:
-                        os.makedirs(path, exist_ok=True)
-                    except OSError as error:
-                        pass
-                    FileFolder_NG = 'Record/' + self.PartNumber_R  +'/NG/Point' + str(R + 1)
-                    path = os.path.join(FileFolder_NG)
-                    try:
-                        os.makedirs(path, exist_ok=True)
-                    except OSError as error:
-                        pass
-                    self.Point_Mode_R.append(Master_Right[R]["Point" + str(R + 1)][0]["Mode"])
-                    self.Point_Left_R.append(Master_Right[R]["Point" + str(R + 1)][0]["Left"])
-                    self.Point_Top_R.append(Master_Right[R]["Point" + str(R + 1)][0]["Top"])
-                    self.Point_Right_R.append(Master_Right[R]["Point" + str(R + 1)][0]["Right"])
-                    self.Point_Bottom_R.append(Master_Right[R]["Point" + str(R + 1)][0]["Bottom"])
-                    self.Point_Score_R.append(Master_Right[R]["Point" + str(R + 1)][0]["Score"])
-                    self.Point_Color_R.append(Master_Right[R]["Point" + str(R + 1)][0]["Color"])
-                    Color_Right.append("#A9A9A9")
-                self.View_Point_Right(Color_Right)
-        except:
-            pass
-
-        try:
-            with open(self.PartNumber_S + '/' + self.PartNumber_S + '.json', 'r') as json_file:
-                Master_Right = json.loads(json_file.read())
-            if self.CouterPoint_Single != 0:
-                self.Point_Left_S = []
-                self.Point_Top_S = []
-                self.Point_Right_S = []
-                self.Point_Bottom_S = []
-                self.Point_Score_S = []
-                self.Point_Mode_S = []
-                self.Point_Color_S = []
-                Color_Single = []
-                for S in range(self.CouterPoint_Single):
-                    FileFolder_Ok = 'Record/' + self.PartNumber_S + '/OK/Point' + str(S + 1)
-                    path = os.path.join(FileFolder_Ok)
-                    try:
-                        os.makedirs(path, exist_ok=True)
-                    except OSError as error:
-                        pass
-                    FileFolder_NG = 'Record/' + self.PartNumber_S + '/NG/Point' + str(S + 1)
-                    path = os.path.join(FileFolder_NG)
-                    try:
-                        os.makedirs(path, exist_ok=True)
-                    except OSError as error:
-                        pass
-                    self.Point_Mode_S.append(Master_Right[S]["Point" + str(S + 1)][0]["Mode"])
-                    self.Point_Left_S.append(Master_Right[S]["Point" + str(S + 1)][0]["Left"])
-                    self.Point_Top_S.append(Master_Right[S]["Point" + str(S + 1)][0]["Top"])
-                    self.Point_Right_S.append(Master_Right[S]["Point" + str(S + 1)][0]["Right"])
-                    self.Point_Bottom_S.append(Master_Right[S]["Point" + str(S + 1)][0]["Bottom"])
-                    self.Point_Score_S.append(Master_Right[S]["Point" + str(S + 1)][0]["Score"])
-                    self.Point_Color_S.append(Master_Right[S]["Point" + str(S + 1)][0]["Color"])
-                    Color_Single.append("#A9A9A9")
-                self.View_Point_Single(Color_Single)
-        except:
-            pass
-
 
     def View(self):
         self.API = GetAPI.API()
@@ -896,6 +748,160 @@ class App(customtkinter.CTk):
             pass
         try:
             self.ImageReal_Single.place_forget()
+        except:
+            pass
+
+    def ReadFile(self):
+        try:
+            self.CouterPoint_Left = 0
+            self.dir_path = r"" + self.PartNumber_L + "\Master"
+            for path in os.listdir(self.dir_path):
+                if os.path.isfile(os.path.join(self.dir_path, path)):
+                    if path.endswith('.bmp'):
+                        self.CouterPoint_Left += 1
+            self.CouterPoint_Left = int(self.CouterPoint_Left / 2)
+        except FileNotFoundError as ex:
+            self.CouterPoint_Left = 0
+        try:
+            self.CouterPoint_Right = 0
+            self.dir_path = r"" + self.PartNumber_R + "\Master"
+            for path in os.listdir(self.dir_path):
+                if os.path.isfile(os.path.join(self.dir_path, path)):
+                    if path.endswith('.bmp'):
+                        self.CouterPoint_Right += 1
+            self.CouterPoint_Right = int(self.CouterPoint_Right / 2)
+        except FileNotFoundError as ex:
+            self.CouterPoint_Right = 0
+
+        try:
+            self.CouterPoint_Single = 0
+            self.dir_path = r"" + self.PartNumber_S + "\Master"
+            for path in os.listdir(self.dir_path):
+                if os.path.isfile(os.path.join(self.dir_path, path)):
+                    if path.endswith('.bmp'):
+                        self.CouterPoint_Single += 1
+            self.CouterPoint_Single = int(self.CouterPoint_Single / 2)
+            #print(self.CouterPoint_Single)
+        except FileNotFoundError as ex:
+            self.CouterPoint_Single = 0
+
+    def ReadFileScore(self):
+        try:
+            with open(self.PartNumber_L + '/' + self.PartNumber_L + '.json', 'r') as json_file:
+                Master_Left = json.loads(json_file.read())
+            if self.CouterPoint_Left == len(Master_Left):
+                if self.CouterPoint_Left != 0:
+                    self.Point_Left_L = []
+                    self.Point_Top_L = []
+                    self.Point_Right_L = []
+                    self.Point_Bottom_L = []
+                    self.Point_Score_L = []
+                    self.Point_Mode_L = []
+                    self.Point_Color_L = []
+                    Color_Left = []
+                    for L in range(self.CouterPoint_Left):
+                        FileFolder_Ok = 'Record/' + self.PartNumber_L +'/OK/Point' + str(L + 1)
+                        path = os.path.join(FileFolder_Ok)
+                        try:
+                            os.makedirs(path, exist_ok=True)
+                        except OSError as error:
+                            pass
+                        FileFolder_NG = 'Record/' + self.PartNumber_L +'/NG/Point' + str(L + 1)
+                        path = os.path.join(FileFolder_NG)
+                        try:
+                            os.makedirs(path, exist_ok=True)
+                        except OSError as error:
+                            pass
+                        self.Point_Mode_L.append(Master_Left[L]["Point" + str(L + 1)][0]["Mode"])
+                        self.Point_Left_L.append(Master_Left[L]["Point" + str(L + 1)][0]["Left"])
+                        self.Point_Top_L.append(Master_Left[L]["Point" + str(L + 1)][0]["Top"])
+                        self.Point_Right_L.append(Master_Left[L]["Point" + str(L + 1)][0]["Right"])
+                        self.Point_Bottom_L.append(Master_Left[L]["Point" + str(L + 1)][0]["Bottom"])
+                        self.Point_Score_L.append(Master_Left[L]["Point" + str(L + 1)][0]["Score"])
+                        self.Point_Color_L.append(Master_Left[L]["Point" + str(L + 1)][0]["Color"])
+                        Color_Left.append("#A9A9A9")
+                    self.View_Point_Left(Color_Left)
+            else:
+                messagebox.showwarning("Warning", "MasterImage & MasterData Dont's Match")
+        except:
+            pass
+        try:
+            with open(self.PartNumber_R  + '/' + self.PartNumber_R  + '.json', 'r') as json_file:
+                Master_Right = json.loads(json_file.read())
+            if self.CouterPoint_Right == len(Master_Right):
+                if self.CouterPoint_Right != 0:
+                    self.Point_Left_R = []
+                    self.Point_Top_R = []
+                    self.Point_Right_R = []
+                    self.Point_Bottom_R = []
+                    self.Point_Score_R = []
+                    self.Point_Mode_R = []
+                    self.Point_Color_R = []
+                    Color_Right = []
+                    for R in range(self.CouterPoint_Right):
+                        FileFolder_Ok = 'Record/' + self.PartNumber_R  +'/OK/Point' + str(R + 1)
+                        path = os.path.join(FileFolder_Ok)
+                        try:
+                            os.makedirs(path, exist_ok=True)
+                        except OSError as error:
+                            pass
+                        FileFolder_NG = 'Record/' + self.PartNumber_R  +'/NG/Point' + str(R + 1)
+                        path = os.path.join(FileFolder_NG)
+                        try:
+                            os.makedirs(path, exist_ok=True)
+                        except OSError as error:
+                            pass
+                        self.Point_Mode_R.append(Master_Right[R]["Point" + str(R + 1)][0]["Mode"])
+                        self.Point_Left_R.append(Master_Right[R]["Point" + str(R + 1)][0]["Left"])
+                        self.Point_Top_R.append(Master_Right[R]["Point" + str(R + 1)][0]["Top"])
+                        self.Point_Right_R.append(Master_Right[R]["Point" + str(R + 1)][0]["Right"])
+                        self.Point_Bottom_R.append(Master_Right[R]["Point" + str(R + 1)][0]["Bottom"])
+                        self.Point_Score_R.append(Master_Right[R]["Point" + str(R + 1)][0]["Score"])
+                        self.Point_Color_R.append(Master_Right[R]["Point" + str(R + 1)][0]["Color"])
+                        Color_Right.append("#A9A9A9")
+                    self.View_Point_Right(Color_Right)
+            else:
+                messagebox.showwarning("Warning", "MasterImage & MasterData Dont's Match")
+        except:
+            pass
+
+        try:
+            with open(self.PartNumber_S + '/' + self.PartNumber_S + '.json', 'r') as json_file:
+                Master_Single = json.loads(json_file.read())
+            if self.CouterPoint_Single == len(Master_Single):
+                if self.CouterPoint_Single != 0:
+                    self.Point_Left_S = []
+                    self.Point_Top_S = []
+                    self.Point_Right_S = []
+                    self.Point_Bottom_S = []
+                    self.Point_Score_S = []
+                    self.Point_Mode_S = []
+                    self.Point_Color_S = []
+                    Color_Single = []
+                    for S in range(self.CouterPoint_Single):
+                        FileFolder_Ok = 'Record/' + self.PartNumber_S + '/OK/Point' + str(S + 1)
+                        path = os.path.join(FileFolder_Ok)
+                        try:
+                            os.makedirs(path, exist_ok=True)
+                        except OSError as error:
+                            pass
+                        FileFolder_NG = 'Record/' + self.PartNumber_S + '/NG/Point' + str(S + 1)
+                        path = os.path.join(FileFolder_NG)
+                        try:
+                            os.makedirs(path, exist_ok=True)
+                        except OSError as error:
+                            pass
+                        self.Point_Mode_S.append(Master_Single[S]["Point" + str(S + 1)][0]["Mode"])
+                        self.Point_Left_S.append(Master_Single[S]["Point" + str(S + 1)][0]["Left"])
+                        self.Point_Top_S.append(Master_Single[S]["Point" + str(S + 1)][0]["Top"])
+                        self.Point_Right_S.append(Master_Single[S]["Point" + str(S + 1)][0]["Right"])
+                        self.Point_Bottom_S.append(Master_Single[S]["Point" + str(S + 1)][0]["Bottom"])
+                        self.Point_Score_S.append(Master_Single[S]["Point" + str(S + 1)][0]["Score"])
+                        self.Point_Color_S.append(Master_Single[S]["Point" + str(S + 1)][0]["Color"])
+                        Color_Single.append("#A9A9A9")
+                    self.View_Point_Single(Color_Single)
+            else:
+                messagebox.showwarning("Warning", "MasterImage & MasterData Dont's Match")
         except:
             pass
 
@@ -1284,8 +1290,8 @@ class App(customtkinter.CTk):
                                     Right = refPt[1][0]
                                     Bottom = refPt[1][1]
                                     img = Image.fromarray(x)
-                                    Showtext = cv.putText(image, "Image Save " + Point + "", (10, 25),
-                                                          cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1)
+                                    Showtext = cv.putText(image, Point , (10, 25),
+                                                          cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
                                     cv.imshow(Point, Showtext)
                                     img.save('' + Create + '/' + Point + '_Template.bmp')
                                     cv.imwrite('' + Create + '/' + Point + '_Master.bmp', image)
