@@ -63,7 +63,50 @@ imagegaussianblur = convolve2d(input_image, kernel=np.array([[1, 2, 1], [2, 4, 2
 cv2.imwrite(IMAGES_PATH + 'gaussian_blur.jpg', imagegaussianblur)
     
     """""""""""
-# Operating System List
-my_list = [1, 2, 3, 4, 5]
-reversed_list = my_list[::-1]
-print(reversed_list)
+import os
+import json
+class ReadFile:
+    @staticmethod
+    def ReadFile_Score(PartNumber,Couter_Point):
+            with open(PartNumber + '/' + PartNumber + '.json', 'r') as json_file:
+                Master = json.loads(json_file.read())
+            print(Couter_Point,len(Master))
+            if Couter_Point == len(Master):
+                if Couter_Point != 0:
+                    Point_Left = []
+                    Point_Top = []
+                    Point_Right = []
+                    Point_Bottom = []
+                    Point_Score = []
+                    Point_Mode = []
+                    Point_Color = []
+                    Color = []
+                    for Point in range(Couter_Point):
+                        FileFolder_Ok = 'Record/' + PartNumber + '/OK/Point' + str(Point +  1)
+                        path = os.path.join(FileFolder_Ok)
+                        try:
+                            os.makedirs(path, exist_ok=True)
+                        except OSError as error:
+                            pass
+                        FileFolder_NG = 'Record/' + PartNumber + '/NG/Point' + str(Point + 1)
+                        path = os.path.join(FileFolder_NG)
+                        try:
+                            os.makedirs(path, exist_ok=True)
+                        except OSError as error:
+                            pass
+                        Point_Mode.append(Master[Point]["Point" + str(Point + 1)][0]["Mode"])
+                        Point_Left.append(Master[Point]["Point" + str(Point + 1)][0]["Left"])
+                        Point_Top.append(Master[Point]["Point" + str(Point + 1)][0]["Top"])
+                        Point_Right.append(Master[Point]["Point" + str(Point + 1)][0]["Right"])
+                        Point_Bottom.append(Master[Point]["Point" + str(Point + 1)][0]["Bottom"])
+                        Point_Score.append(Master[Point]["Point" + str(Point + 1)][0]["Score"])
+                        Point_Color.append(Master[Point]["Point" + str(Point + 1)][0]["Color"])
+                        Color.append("#A9A9A9")
+                    return Point_Left,Point_Top,Point_Right,Point_Bottom,Point_Score,Point_Mode,Point_Color,Color
+                    #return Point_Mode,Point_Left,Point_Top,Point_Right,Point_Bottom,Point_Score,Point_Color,Color
+
+
+
+Pt = "TMTD894LOO"
+couter = 2
+print(ReadFile.ReadFile_Score(Pt,couter))

@@ -121,6 +121,63 @@ class InfiniteTimer():
             self.thread.cancel()
         else:
             pass
+class ReadFile:
+    @staticmethod
+    def ReadFile_Image(PartNumber):
+        try:
+            CouterPoint = 0
+            dir_path = r"" + PartNumber + "\Master"
+            for path in os.listdir(dir_path):
+                if os.path.isfile(os.path.join(dir_path, path)):
+                    if path.endswith('.bmp'):
+                        CouterPoint += 1
+            CouterPoint = int(CouterPoint / 2)
+        except FileNotFoundError as ex:
+            CouterPoint = 0
+        return CouterPoint
+
+    @staticmethod
+    def ReadFile_Score(PartNumber, Couter_Point):
+        try:
+            with open(PartNumber + '/' + PartNumber + '.json', 'r') as json_file:
+                Master = json.loads(json_file.read())
+            if Couter_Point == len(Master):
+                if Couter_Point != 0:
+                    Point_Left = []
+                    Point_Top = []
+                    Point_Right = []
+                    Point_Bottom = []
+                    Point_Score = []
+                    Point_Mode = []
+                    Point_Color = []
+                    Color = []
+                    for Point in range(Couter_Point):
+                        FileFolder_Ok = 'Record/' + PartNumber + '/OK/Point' + str(Point + 1)
+                        path = os.path.join(FileFolder_Ok)
+                        try:
+                            os.makedirs(path, exist_ok=True)
+                        except OSError as error:
+                            pass
+                        FileFolder_NG = 'Record/' + PartNumber + '/NG/Point' + str(Point + 1)
+                        path = os.path.join(FileFolder_NG)
+                        try:
+                            os.makedirs(path, exist_ok=True)
+                        except OSError as error:
+                            pass
+                        Point_Mode.append(Master[Point]["Point" + str(Point + 1)][0]["Mode"])
+                        Point_Left.append(Master[Point]["Point" + str(Point + 1)][0]["Left"])
+                        Point_Top.append(Master[Point]["Point" + str(Point + 1)][0]["Top"])
+                        Point_Right.append(Master[Point]["Point" + str(Point + 1)][0]["Right"])
+                        Point_Bottom.append(Master[Point]["Point" + str(Point + 1)][0]["Bottom"])
+                        Point_Score.append(Master[Point]["Point" + str(Point + 1)][0]["Score"])
+                        Point_Color.append(Master[Point]["Point" + str(Point + 1)][0]["Color"])
+                        Color.append("#A9A9A9")
+                    return Point_Left,Point_Top,Point_Right,Point_Bottom,Point_Score,Point_Mode,Point_Color,Color
+            else:
+                pass
+                messagebox.showwarning("Warning", "MasterImage & MasterData Dont's Match")
+        except:
+            pass
 
 class Main:
     @staticmethod
@@ -453,8 +510,9 @@ class App(customtkinter.CTk):
 
         self.View_Point_Clear()
         self.View()
-        self.ReadFile()
-        self.ReadFileScore()
+
+        #self.ReadFile()
+        #self.ReadFileScore()
 
 
 
@@ -482,7 +540,7 @@ class App(customtkinter.CTk):
         #self.scaling_optionemenu = customtkinter.CTkOptionMenu(master=self, values=["50%", "60%", "70%","80%", "90%", "100%", "110%", "120%"], command=self.change_scaling_event)
         #self.scaling_optionemenu.place(x=1000, y=80)
         customtkinter.CTkButton(master=self, text="Reorder", text_color="#00B400", hover_color="#B4F0B4", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=("#353535"),
-                                command=lambda: [self.forget(),self.View_Point_Clear(),self.View(),self.ReadFile(), self.ReadFileScore()]).place(x=1570, y=10)
+                                command=lambda: [self.forget(),self.View_Point_Clear(),self.View()]).place(x=1570, y=10)
 
     def View(self):
         self.API = GetAPI.API()
@@ -500,6 +558,12 @@ class App(customtkinter.CTk):
         self.PartNumber_R = self.BatchNumber_R = self.PartName_R = self.CustomerPartNumber_R = self.Packing_R = ""
         self.PartNumber_L = self.BatchNumber_L = self.PartName_L = self.CustomerPartNumber_L = self.Packing_L = ""
         self.PartNumber_S = self.BatchNumber_S = self.PartName_S = self.CustomerPartNumber_S = self.Packing_S = ""
+
+        self.Point_Left_R =self.Point_Top_R =self.Point_Right_R = self.Point_Bottom_R = self.Point_Score_R = self.Point_Mode_R = self.Point_Color_R = self.Color_R = []
+        self.Point_Left_L = self.Point_Top_L = self.Point_Right_L = self.Point_Bottom_L = self.Point_Score_L = self.Point_Mode_L = self.Point_Color_L = self.Color_L = []
+        self.Point_Left_S = self.Point_Top_S = self.Point_Right_S = self.Point_Bottom_S = self.Point_Score_S = self.Point_Mode_S = self.Point_Color_S = self.Color_S =[]
+
+
 
         # Left
         # Right
@@ -526,6 +590,12 @@ class App(customtkinter.CTk):
             self.PartNumber = "|"+self.PartNumber_R + "|" + self.PartNumber_L
             self.CouterPacking_Left = Packing.Read_Priter(self.PartNumber_L)
             self.CouterPacking_Right = Packing.Read_Priter(self.PartNumber_R)
+
+            self.CouterPoint_Left = ReadFile.ReadFile_Image(self.PartNumber_L)
+            self.Point_Left_L , self.Point_Top_L , self.Point_Right_L , self.Point_Bottom_L , self.Point_Score_L , self.Point_Mode_L , self.Point_Color_L = ReadFile.ReadFile_Score(self.PartNumber_L,self.CouterPoint_Left)
+            self.CouterPoint_Right = ReadFile.ReadFile_Image(self.PartNumber_R)
+            self.Point_Left_R , self.Point_Top_R , self.Point_Right_R , self.Point_Bottom_R , self.Point_Score_R , self.Point_Mode_R , self.Point_Color_R = ReadFile.ReadFile_Score(self.PartNumber_R,self.CouterPoint_Right)
+
 
             self.BKF_Part_L_Lable = customtkinter.CTkLabel(master=self, text="BKF Part :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"))
             self.BKF_Part_L_Lable.place(x=10, y=100)
@@ -591,6 +661,9 @@ class App(customtkinter.CTk):
                 self.CouterPacking_Right = Packing.Read_Priter(self.PartNumber_R)
                 self.PartNumber = "|"+self.PartNumber_R+ "|"
 
+                self.CouterPoint_Right = ReadFile.ReadFile_Image(self.PartNumber_R)
+                self.Point_Left_R, self.Point_Top_R, self.Point_Right_R, self.Point_Bottom_R, self.Point_Score_R, self.Point_Mode_R, self.Point_Color_R = ReadFile.ReadFile_Score(self.PartNumber_R, self.CouterPoint_Right)
+
                 self.BKF_Part_R_Lable = customtkinter.CTkLabel(master=self, text="BKF Part :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"))
                 self.BKF_Part_R_Lable.place(x=960, y=100)
                 self.PartNumber_R_Data = customtkinter.CTkLabel(master=self, text=self.PartNumber_R, text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), fg_color=("#00B400"), corner_radius=10)
@@ -629,6 +702,9 @@ class App(customtkinter.CTk):
                 self.CouterPacking_Right = Packing.Read_Priter(self.PartNumber_R)
                 self.PartNumber = "|"+"|"+self.PartNumber_L
 
+                self.CouterPoint_Left = ReadFile.ReadFile_Image(self.PartNumber_L)
+                self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L, self.Point_Score_L, self.Point_Mode_L, self.Point_Color_L = ReadFile.ReadFile_Score(self.PartNumber_L, self.CouterPoint_Left)
+
                 self.BKF_Part_L_Lable = customtkinter.CTkLabel(master=self, text="BKF Part :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"))
                 self.BKF_Part_L_Lable.place(x=10, y=100)
                 self.PartNumber_L_Data = customtkinter.CTkLabel(master=self, text=self.PartNumber_L, text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), fg_color=("#00B400"), corner_radius=10)
@@ -666,6 +742,8 @@ class App(customtkinter.CTk):
                 self.PartNumber = self.PartNumber_S + "|"+ "|"
                 self.ImageReal_Single = tk.Button(self, bg="White", command=lambda: self.ViewImagePart(self.PartNumber_S))
                 self.ImageReal_Single.place(x=450, y=280)
+                self.CouterPoint_Single = ReadFile.ReadFile_Image(self.PartNumber_S)
+                self.Point_Left_S, self.Point_Top_S, self.Point_Right_S, self.Point_Bottom_S, self.Point_Score_S, self.Point_Mode_S, self.Point_Color_S,self.Color_S = ReadFile.ReadFile_Score(self.PartNumber_S, self.CouterPoint_Single)
 
                 self.BKF_Part_S_Lable = customtkinter.CTkLabel(master=self, text="BKF Part :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"))
                 self.BKF_Part_S_Lable.place(x=450, y=100)
@@ -752,160 +830,6 @@ class App(customtkinter.CTk):
         except:
             pass
 
-    def ReadFile(self):
-        try:
-            self.CouterPoint_Left = 0
-            self.dir_path = r"" + self.PartNumber_L + "\Master"
-            for path in os.listdir(self.dir_path):
-                if os.path.isfile(os.path.join(self.dir_path, path)):
-                    if path.endswith('.bmp'):
-                        self.CouterPoint_Left += 1
-            self.CouterPoint_Left = int(self.CouterPoint_Left / 2)
-        except FileNotFoundError as ex:
-            self.CouterPoint_Left = 0
-        try:
-            self.CouterPoint_Right = 0
-            self.dir_path = r"" + self.PartNumber_R + "\Master"
-            for path in os.listdir(self.dir_path):
-                if os.path.isfile(os.path.join(self.dir_path, path)):
-                    if path.endswith('.bmp'):
-                        self.CouterPoint_Right += 1
-            self.CouterPoint_Right = int(self.CouterPoint_Right / 2)
-        except FileNotFoundError as ex:
-            self.CouterPoint_Right = 0
-
-        try:
-            self.CouterPoint_Single = 0
-            self.dir_path = r"" + self.PartNumber_S + "\Master"
-            for path in os.listdir(self.dir_path):
-                if os.path.isfile(os.path.join(self.dir_path, path)):
-                    if path.endswith('.bmp'):
-                        self.CouterPoint_Single += 1
-            self.CouterPoint_Single = int(self.CouterPoint_Single / 2)
-        except FileNotFoundError as ex:
-            self.CouterPoint_Single = 0
-
-    def ReadFileScore(self):
-        try:
-            with open(self.PartNumber_L + '/' + self.PartNumber_L + '.json', 'r') as json_file:
-                Master_Left = json.loads(json_file.read())
-            if self.CouterPoint_Left == len(Master_Left):
-                if self.CouterPoint_Left != 0:
-                    self.Point_Left_L = []
-                    self.Point_Top_L = []
-                    self.Point_Right_L = []
-                    self.Point_Bottom_L = []
-                    self.Point_Score_L = []
-                    self.Point_Mode_L = []
-                    self.Point_Color_L = []
-                    Color_Left = []
-                    for L in range(self.CouterPoint_Left):
-                        FileFolder_Ok = 'Record/' + self.PartNumber_L +'/OK/Point' + str(L + 1)
-                        path = os.path.join(FileFolder_Ok)
-                        try:
-                            os.makedirs(path, exist_ok=True)
-                        except OSError as error:
-                            pass
-                        FileFolder_NG = 'Record/' + self.PartNumber_L +'/NG/Point' + str(L + 1)
-                        path = os.path.join(FileFolder_NG)
-                        try:
-                            os.makedirs(path, exist_ok=True)
-                        except OSError as error:
-                            pass
-                        self.Point_Mode_L.append(Master_Left[L]["Point" + str(L + 1)][0]["Mode"])
-                        self.Point_Left_L.append(Master_Left[L]["Point" + str(L + 1)][0]["Left"])
-                        self.Point_Top_L.append(Master_Left[L]["Point" + str(L + 1)][0]["Top"])
-                        self.Point_Right_L.append(Master_Left[L]["Point" + str(L + 1)][0]["Right"])
-                        self.Point_Bottom_L.append(Master_Left[L]["Point" + str(L + 1)][0]["Bottom"])
-                        self.Point_Score_L.append(Master_Left[L]["Point" + str(L + 1)][0]["Score"])
-                        self.Point_Color_L.append(Master_Left[L]["Point" + str(L + 1)][0]["Color"])
-                        Color_Left.append("#A9A9A9")
-                    self.View_Point_Left(Color_Left)
-            else:
-                pass
-                #messagebox.showwarning("Warning", "MasterImage & MasterData Dont's Match")
-        except:
-            pass
-        try:
-            with open(self.PartNumber_R  + '/' + self.PartNumber_R  + '.json', 'r') as json_file:
-                Master_Right = json.loads(json_file.read())
-            if self.CouterPoint_Right == len(Master_Right):
-                if self.CouterPoint_Right != 0:
-                    self.Point_Left_R = []
-                    self.Point_Top_R = []
-                    self.Point_Right_R = []
-                    self.Point_Bottom_R = []
-                    self.Point_Score_R = []
-                    self.Point_Mode_R = []
-                    self.Point_Color_R = []
-                    Color_Right = []
-                    for R in range(self.CouterPoint_Right):
-                        FileFolder_Ok = 'Record/' + self.PartNumber_R  +'/OK/Point' + str(R + 1)
-                        path = os.path.join(FileFolder_Ok)
-                        try:
-                            os.makedirs(path, exist_ok=True)
-                        except OSError as error:
-                            pass
-                        FileFolder_NG = 'Record/' + self.PartNumber_R  +'/NG/Point' + str(R + 1)
-                        path = os.path.join(FileFolder_NG)
-                        try:
-                            os.makedirs(path, exist_ok=True)
-                        except OSError as error:
-                            pass
-                        self.Point_Mode_R.append(Master_Right[R]["Point" + str(R + 1)][0]["Mode"])
-                        self.Point_Left_R.append(Master_Right[R]["Point" + str(R + 1)][0]["Left"])
-                        self.Point_Top_R.append(Master_Right[R]["Point" + str(R + 1)][0]["Top"])
-                        self.Point_Right_R.append(Master_Right[R]["Point" + str(R + 1)][0]["Right"])
-                        self.Point_Bottom_R.append(Master_Right[R]["Point" + str(R + 1)][0]["Bottom"])
-                        self.Point_Score_R.append(Master_Right[R]["Point" + str(R + 1)][0]["Score"])
-                        self.Point_Color_R.append(Master_Right[R]["Point" + str(R + 1)][0]["Color"])
-                        Color_Right.append("#A9A9A9")
-                    self.View_Point_Right(Color_Right)
-            else:
-                pass
-                #messagebox.showwarning("Warning", "MasterImage & MasterData Dont's Match")
-        except:
-            pass
-
-        try:
-            with open(self.PartNumber_S + '/' + self.PartNumber_S + '.json', 'r') as json_file:
-                Master_Single = json.loads(json_file.read())
-            if self.CouterPoint_Single == len(Master_Single):
-                if self.CouterPoint_Single != 0:
-                    self.Point_Left_S = []
-                    self.Point_Top_S = []
-                    self.Point_Right_S = []
-                    self.Point_Bottom_S = []
-                    self.Point_Score_S = []
-                    self.Point_Mode_S = []
-                    self.Point_Color_S = []
-                    Color_Single = []
-                    for S in range(self.CouterPoint_Single):
-                        FileFolder_Ok = 'Record/' + self.PartNumber_S + '/OK/Point' + str(S + 1)
-                        path = os.path.join(FileFolder_Ok)
-                        try:
-                            os.makedirs(path, exist_ok=True)
-                        except OSError as error:
-                            pass
-                        FileFolder_NG = 'Record/' + self.PartNumber_S + '/NG/Point' + str(S + 1)
-                        path = os.path.join(FileFolder_NG)
-                        try:
-                            os.makedirs(path, exist_ok=True)
-                        except OSError as error:
-                            pass
-                        self.Point_Mode_S.append(Master_Single[S]["Point" + str(S + 1)][0]["Mode"])
-                        self.Point_Left_S.append(Master_Single[S]["Point" + str(S + 1)][0]["Left"])
-                        self.Point_Top_S.append(Master_Single[S]["Point" + str(S + 1)][0]["Top"])
-                        self.Point_Right_S.append(Master_Single[S]["Point" + str(S + 1)][0]["Right"])
-                        self.Point_Bottom_S.append(Master_Single[S]["Point" + str(S + 1)][0]["Bottom"])
-                        self.Point_Score_S.append(Master_Single[S]["Point" + str(S + 1)][0]["Score"])
-                        self.Point_Color_S.append(Master_Single[S]["Point" + str(S + 1)][0]["Color"])
-                        Color_Single.append("#A9A9A9")
-                    self.View_Point_Single(Color_Single)
-            else:
-                messagebox.showwarning("Warning", "MasterImage & MasterData Dont's Match")
-        except:
-            pass
 
     def ViewImagePart(self, Partnumber):
         if self.ViewImage is False:
@@ -954,6 +878,12 @@ class App(customtkinter.CTk):
         self.Previous = 0
         self.Couter_Image = 0
         self.Stand = False
+        self.Save_Previous =0
+        self.Save_Next = 0
+        self.Keep = 0
+
+        self.index = 0
+
         ViewNG = Toplevel(self)
         ViewNG.title(Side)
         PointNG = []
@@ -992,15 +922,11 @@ class App(customtkinter.CTk):
                         Image_NG.append(path)
             return Image_NG,Point
 
-
         def Next():
             if self.Stand is True:
-                self.Image_NG, Point = ReadImageNG()
-                self.Previous = len(self.Image_NG) - 1
+                self.index = (self.index + 1) % len(self.Image_NG)
                 Point = PointNG_value.get()
-                image_path_NG = "Record/" + Partnumber + "/NG/" + Point + "/" + self.Image_NG[self.Next+1]
-                self.Next += 1
-                #self.Previous = self.Next
+                image_path_NG = "Record/" + Partnumber + "/NG/" + Point + "/" + self.Image_NG[self.index]
                 imageNG = cv.imread(image_path_NG)
                 imageNG = cv.cvtColor(imageNG, cv.COLOR_BGR2RGB)
                 imageNG = Image.fromarray(imageNG)
@@ -1010,11 +936,10 @@ class App(customtkinter.CTk):
                 image_show_NG.place(x=1000, y=100)
 
         def Previous():
-            Point = PointNG_value.get()
             self.Stand = True
-            image_path_NG = "Record/" + Partnumber + "/NG/" + Point + "/" + self.Image_NG_Revers[self.Previous+1]
-            self.Previous += 1
-            #self.Next = self.Previous
+            self.index = (self.index - 1) % len(self.Image_NG)
+            Point = PointNG_value.get()
+            image_path_NG = "Record/" + Partnumber + "/NG/" + Point + "/" + self.Image_NG[self.index]
             imageNG = cv.imread(image_path_NG)
             imageNG = cv.cvtColor(imageNG, cv.COLOR_BGR2RGB)
             imageNG = Image.fromarray(imageNG)
@@ -1025,18 +950,16 @@ class App(customtkinter.CTk):
 
         def ShowImageNG():
             Point = PointNG_value.get()
-            image_path_Master = Partnumber+'/Master/'+Point+'_Master.bmp'
+            image_path_Master = Partnumber + '/Master/' + Point + '_Master.bmp'
             image = cv.imread(image_path_Master)
             image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
             image = Image.fromarray(image)
             photo = ImageTk.PhotoImage(image.resize((900, 630)))
-            image_show = tk.Label(ViewNG,image=photo)
+            image_show = tk.Label(ViewNG, image=photo)
             image_show.image = photo
-            image_show.place(x=10,y=100)
-
+            image_show.place(x=10, y=100)
             self.Image_NG, Point = ReadImageNG()
-            self.Image_NG_Revers = self.Image_NG[::-1]
-            image_path_NG = "Record/" + Partnumber + "/NG/" + Point + "/" + self.Image_NG_Revers[0]
+            image_path_NG = "Record/" + Partnumber + "/NG/" + Point + "/" + self.Image_NG[len(self.Image_NG)-1]
             imageNG = cv.imread(image_path_NG)
             imageNG = cv.cvtColor(imageNG, cv.COLOR_BGR2RGB)
             imageNG = Image.fromarray(imageNG)
@@ -1047,15 +970,9 @@ class App(customtkinter.CTk):
 
 
 
-
-
-
-
-
-
     def Processing(self):
         if self.data == "Snap1":
-            if self.CouterPoint_Left != 0:
+            if self.CouterPoint_Single != 0:
                 self.Run_Single = True
                 Filename = "Current.png"
                 cv.imwrite(Filename, frame0.read()[1])
