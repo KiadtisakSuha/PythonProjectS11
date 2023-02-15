@@ -1000,22 +1000,7 @@ class App(customtkinter.CTk):
                 Point = PointNG_value.get()
                 image_path_NG = "Record/" + Partnumber + "/NG/" + Point + "/" + self.Image_NG[self.Next+1]
                 self.Next += 1
-                if len(self.Image_NG) > self.Next:
-                    imageNG = cv.imread(image_path_NG)
-                    imageNG = cv.cvtColor(imageNG, cv.COLOR_BGR2RGB)
-                    imageNG = Image.fromarray(imageNG)
-                    photoNG = ImageTk.PhotoImage(imageNG.resize((900, 630)))
-                    image_show_NG = tk.Label(ViewNG, image=photoNG)
-                    image_show_NG.image = photoNG
-                    image_show_NG.place(x=1000, y=100)
-
-        def Previous():
-            self.Next = 0
-            self.Stand = True
-            Point = PointNG_value.get()
-            image_path_NG = "Record/" + Partnumber + "/NG/" + Point + "/" + self.Image_NG[self.Previous-1]
-            if self.Previous >= 1:
-                self.Previous -= 1
+                #self.Previous = self.Next
                 imageNG = cv.imread(image_path_NG)
                 imageNG = cv.cvtColor(imageNG, cv.COLOR_BGR2RGB)
                 imageNG = Image.fromarray(imageNG)
@@ -1024,8 +1009,21 @@ class App(customtkinter.CTk):
                 image_show_NG.image = photoNG
                 image_show_NG.place(x=1000, y=100)
 
+        def Previous():
+            Point = PointNG_value.get()
+            self.Stand = True
+            image_path_NG = "Record/" + Partnumber + "/NG/" + Point + "/" + self.Image_NG_Revers[self.Previous+1]
+            self.Previous += 1
+            #self.Next = self.Previous
+            imageNG = cv.imread(image_path_NG)
+            imageNG = cv.cvtColor(imageNG, cv.COLOR_BGR2RGB)
+            imageNG = Image.fromarray(imageNG)
+            photoNG = ImageTk.PhotoImage(imageNG.resize((900, 630)))
+            image_show_NG = tk.Label(ViewNG, image=photoNG)
+            image_show_NG.image = photoNG
+            image_show_NG.place(x=1000, y=100)
+
         def ShowImageNG():
-            self.Stand = False
             Point = PointNG_value.get()
             image_path_Master = Partnumber+'/Master/'+Point+'_Master.bmp'
             image = cv.imread(image_path_Master)
@@ -1037,8 +1035,8 @@ class App(customtkinter.CTk):
             image_show.place(x=10,y=100)
 
             self.Image_NG, Point = ReadImageNG()
-            self.Previous = len(self.Image_NG)-1
-            image_path_NG = "Record/" + Partnumber + "/NG/" + Point + "/" + self.Image_NG[self.Previous]
+            self.Image_NG_Revers = self.Image_NG[::-1]
+            image_path_NG = "Record/" + Partnumber + "/NG/" + Point + "/" + self.Image_NG_Revers[0]
             imageNG = cv.imread(image_path_NG)
             imageNG = cv.cvtColor(imageNG, cv.COLOR_BGR2RGB)
             imageNG = Image.fromarray(imageNG)
@@ -1046,6 +1044,7 @@ class App(customtkinter.CTk):
             image_show_NG = tk.Label(ViewNG, image=photoNG)
             image_show_NG.image = photoNG
             image_show_NG.place(x=1000, y=100)
+
 
 
 
