@@ -138,46 +138,49 @@ class ReadFile:
 
     @staticmethod
     def ReadFile_Score(PartNumber, Couter_Point):
-        try:
-            with open(PartNumber + '/' + PartNumber + '.json', 'r') as json_file:
-                Master = json.loads(json_file.read())
-            if Couter_Point == len(Master):
-                if Couter_Point != 0:
-                    Point_Left = []
-                    Point_Top = []
-                    Point_Right = []
-                    Point_Bottom = []
-                    Point_Score = []
-                    Point_Mode = []
-                    Point_Color = []
-                    Color = []
-                    for Point in range(Couter_Point):
-                        FileFolder_Ok = 'Record/' + PartNumber + '/OK/Point' + str(Point + 1)
-                        path = os.path.join(FileFolder_Ok)
-                        try:
-                            os.makedirs(path, exist_ok=True)
-                        except OSError as error:
-                            pass
-                        FileFolder_NG = 'Record/' + PartNumber + '/NG/Point' + str(Point + 1)
-                        path = os.path.join(FileFolder_NG)
-                        try:
-                            os.makedirs(path, exist_ok=True)
-                        except OSError as error:
-                            pass
-                        Point_Mode.append(Master[Point]["Point" + str(Point + 1)][0]["Mode"])
-                        Point_Left.append(Master[Point]["Point" + str(Point + 1)][0]["Left"])
-                        Point_Top.append(Master[Point]["Point" + str(Point + 1)][0]["Top"])
-                        Point_Right.append(Master[Point]["Point" + str(Point + 1)][0]["Right"])
-                        Point_Bottom.append(Master[Point]["Point" + str(Point + 1)][0]["Bottom"])
-                        Point_Score.append(Master[Point]["Point" + str(Point + 1)][0]["Score"])
-                        Point_Color.append(Master[Point]["Point" + str(Point + 1)][0]["Color"])
-                        Color.append("#A9A9A9")
-                    return Point_Left,Point_Top,Point_Right,Point_Bottom,Point_Score,Point_Mode,Point_Color,Color
-            else:
-                pass
-                messagebox.showwarning("Warning", "MasterImage & MasterData Dont's Match")
-        except:
-            pass
+        Point_Left = []
+        Point_Top = []
+        Point_Right = []
+        Point_Bottom = []
+        Point_Score = []
+        Point_Mode = []
+        Point_Color = []
+        Color = []
+        if PartNumber != "":
+            try:
+                with open(PartNumber + '/' + PartNumber + '.json', 'r') as json_file:
+                    Master = json.loads(json_file.read())
+                if Couter_Point == len(Master):
+                    if Couter_Point != 0:
+                        for Point in range(Couter_Point):
+                            FileFolder_Ok = 'Record/' + PartNumber + '/OK/Point' + str(Point + 1)
+                            path = os.path.join(FileFolder_Ok)
+                            try:
+                                os.makedirs(path, exist_ok=True)
+                            except OSError as error:
+                                pass
+                            FileFolder_NG = 'Record/' + PartNumber + '/NG/Point' + str(Point + 1)
+                            path = os.path.join(FileFolder_NG)
+                            try:
+                                os.makedirs(path, exist_ok=True)
+                            except OSError as error:
+                                pass
+                            Point_Mode.append(Master[Point]["Point" + str(Point + 1)][0]["Mode"])
+                            Point_Left.append(Master[Point]["Point" + str(Point + 1)][0]["Left"])
+                            Point_Top.append(Master[Point]["Point" + str(Point + 1)][0]["Top"])
+                            Point_Right.append(Master[Point]["Point" + str(Point + 1)][0]["Right"])
+                            Point_Bottom.append(Master[Point]["Point" + str(Point + 1)][0]["Bottom"])
+                            Point_Score.append(Master[Point]["Point" + str(Point + 1)][0]["Score"])
+                            Point_Color.append(Master[Point]["Point" + str(Point + 1)][0]["Color"])
+                            Color.append("#A9A9A9")
+                        return Point_Left,Point_Top,Point_Right,Point_Bottom,Point_Score,Point_Mode,Point_Color,Color
+                else:
+                    messagebox.showwarning("Warning", "MasterImage & MasterData Dont's Match")
+            except:
+                return Point_Left,Point_Top,Point_Right,Point_Bottom,Point_Score,Point_Mode,Point_Color,Color
+        else:
+            messagebox.showwarning("Warning", "Plan Down")
+            return Point_Left, Point_Top, Point_Right, Point_Bottom, Point_Score, Point_Mode, Point_Color, Color
 
 class Main:
     @staticmethod
@@ -511,11 +514,6 @@ class App(customtkinter.CTk):
         self.View_Point_Clear()
         self.View()
 
-        #self.ReadFile()
-        #self.ReadFileScore()
-
-
-
         self.Image_logo = GetImage()
         host = socket.gethostname()
         port = 10000
@@ -592,10 +590,11 @@ class App(customtkinter.CTk):
             self.CouterPacking_Right = Packing.Read_Priter(self.PartNumber_R)
 
             self.CouterPoint_Left = ReadFile.ReadFile_Image(self.PartNumber_L)
-            self.Point_Left_L , self.Point_Top_L , self.Point_Right_L , self.Point_Bottom_L , self.Point_Score_L , self.Point_Mode_L , self.Point_Color_L = ReadFile.ReadFile_Score(self.PartNumber_L,self.CouterPoint_Left)
+            self.Point_Left_L , self.Point_Top_L , self.Point_Right_L , self.Point_Bottom_L , self.Point_Score_L , self.Point_Mode_L , self.Point_Color_L,self.Color_L = ReadFile.ReadFile_Score(self.PartNumber_L,self.CouterPoint_Left)
+            self.View_Point_Left(self.Color_L)
             self.CouterPoint_Right = ReadFile.ReadFile_Image(self.PartNumber_R)
-            self.Point_Left_R , self.Point_Top_R , self.Point_Right_R , self.Point_Bottom_R , self.Point_Score_R , self.Point_Mode_R , self.Point_Color_R = ReadFile.ReadFile_Score(self.PartNumber_R,self.CouterPoint_Right)
-
+            self.Point_Left_R , self.Point_Top_R , self.Point_Right_R , self.Point_Bottom_R , self.Point_Score_R , self.Point_Mode_R , self.Point_Color_R,self.Color_R = ReadFile.ReadFile_Score(self.PartNumber_R,self.CouterPoint_Right)
+            self.View_Point_Right(self.Color_R)
 
             self.BKF_Part_L_Lable = customtkinter.CTkLabel(master=self, text="BKF Part :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"))
             self.BKF_Part_L_Lable.place(x=10, y=100)
@@ -662,8 +661,8 @@ class App(customtkinter.CTk):
                 self.PartNumber = "|"+self.PartNumber_R+ "|"
 
                 self.CouterPoint_Right = ReadFile.ReadFile_Image(self.PartNumber_R)
-                self.Point_Left_R, self.Point_Top_R, self.Point_Right_R, self.Point_Bottom_R, self.Point_Score_R, self.Point_Mode_R, self.Point_Color_R = ReadFile.ReadFile_Score(self.PartNumber_R, self.CouterPoint_Right)
-
+                self.Point_Left_R, self.Point_Top_R, self.Point_Right_R, self.Point_Bottom_R, self.Point_Score_R, self.Point_Mode_R, self.Point_Color_R , self.Color_R= ReadFile.ReadFile_Score(self.PartNumber_R, self.CouterPoint_Right)
+                self.View_Point_Right(self.Color_R)
                 self.BKF_Part_R_Lable = customtkinter.CTkLabel(master=self, text="BKF Part :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"))
                 self.BKF_Part_R_Lable.place(x=960, y=100)
                 self.PartNumber_R_Data = customtkinter.CTkLabel(master=self, text=self.PartNumber_R, text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), fg_color=("#00B400"), corner_radius=10)
@@ -703,8 +702,8 @@ class App(customtkinter.CTk):
                 self.PartNumber = "|"+"|"+self.PartNumber_L
 
                 self.CouterPoint_Left = ReadFile.ReadFile_Image(self.PartNumber_L)
-                self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L, self.Point_Score_L, self.Point_Mode_L, self.Point_Color_L = ReadFile.ReadFile_Score(self.PartNumber_L, self.CouterPoint_Left)
-
+                self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L, self.Point_Score_L, self.Point_Mode_L, self.Point_Color_L,self.Color_L = ReadFile.ReadFile_Score(self.PartNumber_L, self.CouterPoint_Left)
+                self.View_Point_Left(self.Color_L)
                 self.BKF_Part_L_Lable = customtkinter.CTkLabel(master=self, text="BKF Part :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"))
                 self.BKF_Part_L_Lable.place(x=10, y=100)
                 self.PartNumber_L_Data = customtkinter.CTkLabel(master=self, text=self.PartNumber_L, text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), fg_color=("#00B400"), corner_radius=10)
@@ -744,6 +743,7 @@ class App(customtkinter.CTk):
                 self.ImageReal_Single.place(x=450, y=280)
                 self.CouterPoint_Single = ReadFile.ReadFile_Image(self.PartNumber_S)
                 self.Point_Left_S, self.Point_Top_S, self.Point_Right_S, self.Point_Bottom_S, self.Point_Score_S, self.Point_Mode_S, self.Point_Color_S,self.Color_S = ReadFile.ReadFile_Score(self.PartNumber_S, self.CouterPoint_Single)
+                self.View_Point_Single(self.Color_S)
 
                 self.BKF_Part_S_Lable = customtkinter.CTkLabel(master=self, text="BKF Part :", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"))
                 self.BKF_Part_S_Lable.place(x=450, y=100)
@@ -1169,18 +1169,6 @@ class App(customtkinter.CTk):
                 self.Error_passWord.configure(text='Wrong password did not match')
                 return False
 
-            """""""""""
-            with urllib.request.urlopen("http://192.168.1.48:89/RobotAPI/GetEmp") as response:
-                json_object = json.loads(response.read())
-                id_Emp = []
-                for d in json_object:
-                    id_Emp.append(d['id_Emp'])
-            for i in range(len(id_Emp)):
-                if id_Emp[i] == Password.get():
-                    return True
-            messagebox.showwarning("Password", "Wrong password did not match")
-            return False
-            """""""""""
 
         def Search():
             if Loginform():
