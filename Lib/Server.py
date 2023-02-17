@@ -3,8 +3,8 @@ import socket
 
 def server_program():
     # get the hostname
-    host = socket.gethostname()
-    port = 10000  # initiate port no above 1024
+    host = "192.168.128.1"
+    port = 9005  # initiate port no above 1024
 
     server_socket = socket.socket()  # get instance
     # look closely. The bind() function takes tuple as argument
@@ -15,10 +15,10 @@ def server_program():
     conn, address = server_socket.accept()  # accept new connection
     print("Connection from: " + str(address))
     while True:
-        data = input(' -> ')
-        conn.send(data.encode())
         data = conn.recv(128).decode()
         print("from connected user: " + str(data))
+        data = input(' -> ')
+        conn.send(data.encode())
 
     conn.close()  # close the connection
 

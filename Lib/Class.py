@@ -63,50 +63,54 @@ imagegaussianblur = convolve2d(input_image, kernel=np.array([[1, 2, 1], [2, 4, 2
 cv2.imwrite(IMAGES_PATH + 'gaussian_blur.jpg', imagegaussianblur)
     
     """""""""""
-import os
-import json
-class ReadFile:
-    @staticmethod
-    def ReadFile_Score(PartNumber,Couter_Point):
-            with open(PartNumber + '/' + PartNumber + '.json', 'r') as json_file:
-                Master = json.loads(json_file.read())
-            print(Couter_Point,len(Master))
-            if Couter_Point == len(Master):
-                if Couter_Point != 0:
-                    Point_Left = []
-                    Point_Top = []
-                    Point_Right = []
-                    Point_Bottom = []
-                    Point_Score = []
-                    Point_Mode = []
-                    Point_Color = []
-                    Color = []
-                    for Point in range(Couter_Point):
-                        FileFolder_Ok = 'Record/' + PartNumber + '/OK/Point' + str(Point +  1)
-                        path = os.path.join(FileFolder_Ok)
-                        try:
-                            os.makedirs(path, exist_ok=True)
-                        except OSError as error:
-                            pass
-                        FileFolder_NG = 'Record/' + PartNumber + '/NG/Point' + str(Point + 1)
-                        path = os.path.join(FileFolder_NG)
-                        try:
-                            os.makedirs(path, exist_ok=True)
-                        except OSError as error:
-                            pass
-                        Point_Mode.append(Master[Point]["Point" + str(Point + 1)][0]["Mode"])
-                        Point_Left.append(Master[Point]["Point" + str(Point + 1)][0]["Left"])
-                        Point_Top.append(Master[Point]["Point" + str(Point + 1)][0]["Top"])
-                        Point_Right.append(Master[Point]["Point" + str(Point + 1)][0]["Right"])
-                        Point_Bottom.append(Master[Point]["Point" + str(Point + 1)][0]["Bottom"])
-                        Point_Score.append(Master[Point]["Point" + str(Point + 1)][0]["Score"])
-                        Point_Color.append(Master[Point]["Point" + str(Point + 1)][0]["Color"])
-                        Color.append("#A9A9A9")
-                    return Point_Left,Point_Top,Point_Right,Point_Bottom,Point_Score,Point_Mode,Point_Color,Color
-                    #return Point_Mode,Point_Left,Point_Top,Point_Right,Point_Bottom,Point_Score,Point_Color,Color
+
+'''import cv2
+import matplotlib.pyplot as plt
+
+# Load an example image
+image = cv2.imread("Point1_Template.bmp")
+
+# Convert the image to the LAB color space
+lab_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+# Apply mean shift segmentation
+shifted_image = cv2.pyrMeanShiftFiltering(lab_image, 21, 51)
+
+# Convert the shifted image back to RGB color space
+shifted_image = cv2.cvtColor(shifted_image, cv2.COLOR_BGR2RGB)
+
+# Display the original and shifted images
+fig, ax = plt.subplots(ncols=2, figsize=(8, 4))
+ax[0].imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+ax[0].set_title("Original")
+ax[1].imshow(cv2.cvtColor(shifted_image, cv2.COLOR_BGR2RGB)) s
+ax[1].set_title("Shifted")
+plt.show()'''
+from time import sleep
+from threading import Thread
+from _thread import interrupt_main
+from signal import signal
+from signal import SIGINT
+import sys
 
 
+def handle_sigint(signalnum, frame):
+    print("xxx")
 
-Pt = "TMTD894LOO"
-couter = 2
-print(ReadFile.ReadFile_Score(Pt,couter))
+class common():
+    def __init__(self,target,Time):
+        self.target = target
+        self.Time = Time
+        signal(SIGINT, target)
+        thread = Thread(target=self.task)
+        thread.start()
+    def task(self):
+        sleep(self.Time)
+        thread = Thread(target=self.task)
+        thread.start()
+        interrupt_main()
+
+common(handle_sigint,1)
+while True:
+    print("Ball")
+    sleep(1)

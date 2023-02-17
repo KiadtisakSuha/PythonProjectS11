@@ -57,7 +57,7 @@ class GetAPI:
         method = ["PartNumber", "BatchNumber", "PartName", "CustomerPartNumber", "PackingStd"]
         side = []
         data = []
-        api_url = "https://api.bkf.co.th/APIGateway_DB_BKF/GetCurrentMachineStatus?machineNickName=S03"
+        api_url = "https://api.bkf.co.th/APIGateway_DB_BKF/GetCurrentMachineStatus?machineNickName=E17"
         data_file = 'Part.json'
 
         try:
@@ -515,14 +515,21 @@ class App(customtkinter.CTk):
         self.View()
 
         self.Image_logo = GetImage()
+        #host = socket.gethostname()
+        """host = "192.168.128.5"
+        port = 9005
+        self.client_socket = socket.socket()
+        self.client_socket.connect((host, port))
+        self.Ready = False"""
         host = socket.gethostname()
-        port = 10000
-        #self.client_socket = socket.socket()
-        #self.client_socket.connect((host, port))
-        self.Ready = False
+        port = 9005
+        server_socket = socket.socket()
+        server_socket.bind((host, port))
+        server_socket.listen(2)
+        self.conn, address = server_socket.accept()
 
-        #self.Loop = InfiniteTimer(0.1, self.client_program)
-        #self.Loop.start()
+        self.Loop = InfiniteTimer(0.1, self.server_program)
+        self.Loop.start()
         self.Keepdata = ""
 
         self.TCP()
@@ -925,6 +932,7 @@ class App(customtkinter.CTk):
         def Next():
             if self.Stand is True:
                 self.index = (self.index + 1) % len(self.Image_NG)
+                print(self.index)
                 Point = PointNG_value.get()
                 image_path_NG = "Record/" + Partnumber + "/NG/" + Point + "/" + self.Image_NG[self.index]
                 imageNG = cv.imread(image_path_NG)
@@ -938,6 +946,7 @@ class App(customtkinter.CTk):
         def Previous():
             self.Stand = True
             self.index = (self.index - 1) % len(self.Image_NG)
+            print(self.index)
             Point = PointNG_value.get()
             image_path_NG = "Record/" + Partnumber + "/NG/" + Point + "/" + self.Image_NG[self.index]
             imageNG = cv.imread(image_path_NG)
@@ -971,7 +980,7 @@ class App(customtkinter.CTk):
 
 
     def Processing(self):
-        if self.data == "Snap1":
+        if self.data == "Snap01":#Single
             if self.CouterPoint_Single != 0:
                 self.Run_Single = True
                 Filename = "Current.png"
@@ -996,31 +1005,7 @@ class App(customtkinter.CTk):
                 self.View_Point_Single(Color_Point)
 
 
-        elif self.data == "Snap2":
-            if self.CouterPoint_Left != 0:
-                self.Run_Left = True
-                Filename = "Current.png"
-                cv.imwrite(Filename, frame0.read()[1])
-                ImageSave, ColorView, Color_Save_Image, Result, Score ,Color_Point = Main.Main(self.PartNumber_L,Filename,self.CouterPoint_Left,self.Point_Mode_L,self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L,self.Point_Score_L,self.Point_Color_L)
-                image = Main.ViewImage_Snap(Filename, self.CouterPoint_Left,self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L, Score, ColorView)
-                Save_Data.Save_Image(self.PartNumber_L,self.CouterPoint_Left,ImageSave,self.Point_Mode_L,self.Point_Left_L,self.Point_Top_L,self.Point_Right_L,self.Point_Bottom_L,Color_Save_Image,Score,self.Point_Score_L,Result)
-                Save_Data.Save_Score(self.PartNumber_L, self.BatchNumber_L, self.MachineName,self.CouterPoint_Left,Score,Result)
-                Data = Main.ShowResult(Result)
-                if Data is True:
-                    self.message = "OK"
-                    self.CouterOK_Left = self.CouterOK_Left + 1
-                    self.OK_L.configure(text="NG : " + str(self.CouterOK_Left))
-                    packing_counter = Packing.Counter_Printer(self.PartNumber_L, self.Packing_L)
-                    self.Packing_L_Show.configure(text=str(packing_counter) + "/" + str(self.Packing_L))
-                elif Data is False:
-                    self.message = "NG"
-                    self.CouterNG_Left = self.CouterNG_Left + 1
-                    self.NG_L.configure(text="NG : " + str(self.CouterNG_Left))
-                self.ImageReal_Left.imgtk = image
-                self.ImageReal_Left.configure(image=image)
-                self.View_Point_Left(Color_Point)
-
-        elif self.data == "Snap3":
+        elif self.data == "Snap02":#Right
             if self.CouterPoint_Right != 0:
                 self.Run_Right = True
                 Filename = "Current.png"
@@ -1044,8 +1029,67 @@ class App(customtkinter.CTk):
                 self.ImageReal_Right.configure(image=image)
                 self.View_Point_Right(Color_Point)
 
+        elif self.data == "Snap03":#Left
+            if self.CouterPoint_Left != 0:
+                self.Run_Left = True
+                Filename = "Current.png"
+                cv.imwrite(Filename, frame0.read()[1])
+                ImageSave, ColorView, Color_Save_Image, Result, Score, Color_Point = Main.Main(self.PartNumber_L, Filename, self.CouterPoint_Left, self.Point_Mode_L, self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L, self.Point_Score_L, self.Point_Color_L)
+                image = Main.ViewImage_Snap(Filename, self.CouterPoint_Left, self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L, Score, ColorView)
+                Save_Data.Save_Image(self.PartNumber_L, self.CouterPoint_Left, ImageSave, self.Point_Mode_L, self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L, Color_Save_Image, Score, self.Point_Score_L, Result)
+                Save_Data.Save_Score(self.PartNumber_L, self.BatchNumber_L, self.MachineName, self.CouterPoint_Left, Score, Result)
+                Data = Main.ShowResult(Result)
+                if Data is True:
+                    self.message = "OK"
+                    self.CouterOK_Left = self.CouterOK_Left + 1
+                    self.OK_L.configure(text="NG : " + str(self.CouterOK_Left))
+                    packing_counter = Packing.Counter_Printer(self.PartNumber_L, self.Packing_L)
+                    self.Packing_L_Show.configure(text=str(packing_counter) + "/" + str(self.Packing_L))
+                elif Data is False:
+                    self.message = "NG"
+                    self.CouterNG_Left = self.CouterNG_Left + 1
+                    self.NG_L.configure(text="NG : " + str(self.CouterNG_Left))
+                self.ImageReal_Left.imgtk = image
+                self.ImageReal_Left.configure(image=image)
+                self.View_Point_Left(Color_Point)
 
-    def client_program(self):
+    def server_program(self):
+        self.data = self.conn.recv(128).decode()
+        if self.data == "Vision":
+            if self.API[0] == "Connected":
+                #print(self.API[1])
+                if len(self.API[1]) == 1:
+                    if self.API[1][0] == "Right" and self.CouterPoint_Right != 0:
+                        self.message = "Ready"
+                    elif self.API[1][0] == "Left" and self.CouterPoint_Left != 0:
+                        self.message = "Ready"
+                    elif self.API[1][0] == "Single" and self.CouterPoint_Single != 0:
+                        self.message = "Ready"
+                    else:
+                        self.message = "Setup"
+                elif len(self.API[1]) == 2 and (self.CouterPoint_Right != 0 and self.CouterPoint_Left != 0):
+                    self.message = "Ready"
+                else:
+                    self.message = "Setup"
+            else:
+                self.message = "Setup"
+        elif self.data == "PartNumber":
+            self.message = self.PartNumber
+        elif self.data == "Snap01":  # Single
+            self.Processing()
+        elif self.data == "Snap02":  # Left
+            self.Processing()
+        elif self.data == "Snap03":  # Right
+            self.Processing()
+        # else:
+        # self.message = "NoOrder"
+        # elif self.data == self.Keepdata:
+        # self.message = "Wait"
+        self.Keepdata = self.data
+        self.conn.send(self.message.encode())
+        self.message = ""
+
+    """def client_program(self):
             self.data = self.client_socket.recv(128).decode()
         #if self.data != self.Keepdata:
             if self.data == "Vision":
@@ -1068,11 +1112,11 @@ class App(customtkinter.CTk):
                     self.message = "Setup"
             elif self.data == "PartNumber":
                 self.message = self.PartNumber
-            elif self.data == "Snap1":#Single
+            elif self.data == "Snap01":#Single
                 self.Processing()
-            elif self.data == "Snap2":#Left
+            elif self.data == "Snap02":#Left
                 self.Processing()
-            elif self.data == "Snap3":#Right
+            elif self.data == "Snap03":#Right
                 self.Processing()
             #else:
                 #self.message = "NoOrder"
@@ -1081,7 +1125,7 @@ class App(customtkinter.CTk):
             self.Keepdata = self.data
             self.client_socket.send(self.message.encode())
             self.message = ""
-        #self.after(5000,self.client_program)
+        #self.after(5000,self.client_program)"""
 
     def on_enter(self, event):
         self.image_logo.configure(image=self.Image_logo.ExitImage)
