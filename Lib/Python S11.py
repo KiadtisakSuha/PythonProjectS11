@@ -655,7 +655,7 @@ class App(customtkinter.CTk):
             self.Packing_R_Show = customtkinter.CTkLabel(master=self, text=str(self.CouterPacking_Right) + "/" + str(self.Packing_R), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), corner_radius=10, fg_color=("#00B400"))
             self.Packing_R_Show.place(x=1490, y=100)
 
-        elif len(self.API[1]) == 1:
+        elif len(self.API[1]) == 1:#
             if self.API[1][0] == "Right":
                 self.ImageReal_Right = tk.Button(self, bg="White", command=lambda: self.ViewImagePart(self.PartNumber_R))
                 self.ImageReal_Right.place(x=960, y=260)
