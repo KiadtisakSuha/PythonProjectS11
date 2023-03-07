@@ -493,19 +493,16 @@ class Packing:
                 data = json.load(json_file)
         except FileNotFoundError:
             data = {"Partnumber": Partnumber, "Counter": 0, "Packing": Packing}
-
         packing_counter = data["Counter"] + 1
         pack_part = data["Partnumber"]
         if pack_part != Partnumber:
             printer = {"Partnumber": Partnumber, "Counter": 1, "Packing": Packing}
         else:
             printer = {"Partnumber": Partnumber, "Counter": packing_counter, "Packing": Packing}
-
         if packing_counter >= Packing:
             #printer = {"Partnumber": Partnumber, "Counter": 0, "Packing": Packing}
             with open('Printer.txt', 'w') as f:
                 f.write('Printer')
-
         with open(file_path, 'w') as json_file:
             json.dump(printer, json_file, indent=6)
 
