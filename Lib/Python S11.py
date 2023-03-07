@@ -18,7 +18,7 @@ import customtkinter
 import socket
 
 #API = "https://api.bkf.co.th/APIGateway_DB_BKF/GetCurrentMachineStatus?machineNickName=S11"
-
+ROI = 15
 font = "arial"
 Camera_Qutity = 2
 if Camera_Qutity == 1:
@@ -57,9 +57,8 @@ class GetAPI:
         method = ["PartNumber", "BatchNumber", "PartName", "CustomerPartNumber", "PackingStd"]
         side = []
         data = []
-        api_url = "https://api.bkf.co.th/APIGateway_DB_BKF/GetCurrentMachineStatus?machineNickName=E17"
+        api_url = "https://api.bkf.co.th/APIGateway_DB_BKF/GetCurrentMachineStatus?machineNickName=S11"
         data_file = 'Part.json'
-
         try:
             with urllib.request.urlopen(api_url, timeout=1) as response:
                 json_api = json.loads(response.read())
@@ -195,12 +194,14 @@ class Main:
                 for x in range(Counter):
                     ImageSave.append(cv.imread(FileImage))
                     Template = r"" + Partnumber + "\Master""\\""Point" + str(x + 1) + "_Template.bmp"
-                    (template, top_left, scale, val, w, h) = Shape.Process_Outline(FileImage, Template, Left[x], Top[x], Right[x], Bottom[x])
-                    Master_Image = CropImage.Crop_Image(FileImage, Left[x], Top[x], Right[x], Bottom[x], Mode[x])
+                    (template, top_left, scale, val, bottom_right) = Shape.Process_Outline(FileImage, Template, Left[x], Top[x], Right[x], Bottom[x])
+                    #print(template, top_left, scale, val, bottom_right)
+                    Master_Image = CropImage.Crop_find(FileImage,Left[x],Top[x],Right[x],Bottom[x],top_left,bottom_right,scale)
+                    #Master_Image = CropImage.Crop_Image(FileImage, Left[x], Top[x], Right[x], Bottom[x], Mode[x])
                     if scale == 1 and (val * 1000) >= Score_Set[x]:
                         if Mode[x] == "Shape":
-                            Template_View = cv.imread(Template, 0)
-                            Score_Area_Data = Shape.Process_Area(Shape.Rule_Of_Thirds(Master_Image), Shape.Rule_Of_Thirds(Template_View))
+                            Template_Image = cv.imread(Template, 0)
+                            Score_Area_Data = Shape.Process_Area(Shape.Rule_Of_Thirds(Master_Image), Shape.Rule_Of_Thirds(Template_Image))
                             Score.append(Score_Area_Data)
                             if Score_Area_Data >= Score_Set[x]:
                                 ColorView.append((0, 255, 0))
@@ -231,14 +232,16 @@ class Main:
                         Score.append(0)
                         Result.append(0)
                         Color_Save_Image.append((0, 0, 255))
-                return ImageSave, ColorView, Color_Save_Image, Result, Score, Color
+                return ImageSave, ColorView, Color_Save_Image, Result, Score, Color,top_left
 
     @staticmethod
-    def ViewImage_Snap(Filename,Counter,Left,Top,Right,Bottom,Score,Color):
+    def ViewImage_Snap(Filename,Counter,Left,Top,Right,Bottom,Score,Color,top_left):
+            #image = Main.ViewImage_Snap(Filename, self.CouterPoint_Single, self.Point_Left_S, self.Point_Top_S, self.Point_Right_S, self.Point_Bottom_S, Score, ColorView, top_left)
             image = cv.imread(Filename)
             image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
             for s in range(Counter):
-                cv.rectangle(image, (Left[s], Top[s]), (Right[s], Bottom[s]), Color[s], 2)
+                cv.rectangle(image, (Left[s]+ top_left[0] - ROI, Top[s]+ top_left[1] - ROI), (Right[s]+ top_left[0] - ROI, Bottom[s]+ top_left[1] - ROI), Color[s], 2)
+                cv.rectangle(image, (Left[s] - ROI, Top[s] - ROI), (Right[s] + ROI, Bottom[s] + ROI), Color[s], 2)
                 cv.putText(image, "P:" + str(s + 1) + " S:" + str(Score[s]), (Left[s], Top[s]), cv.FONT_HERSHEY_SIMPLEX, 0.7, Color[s], 2)
             im = Image.fromarray(image)
             im = im.resize((950, 520))
@@ -255,30 +258,28 @@ class Main:
                     return False
                     break
 
-
-
 class Shape:
-
     @staticmethod
-    def Process_Area(Data1, Data2):
+    def Process_Area(Master, Template):
         Score_Ture = []
-        Chack = []
-        swapped = False
         Result_Score = 0
-        for i in range(len(Data1)):
-            total = (((Data1[i] + Data2[i]) / 2) / Data2[i])
-            if total < 1.99:
-                score_out = int(total * 1000)
-                if score_out > 1000:
-                    score_out = 1000 - (score_out - 1000)
-                    Chack.append(1)
-                else:
-                    Chack.append(0)
-                Score_Ture.append(score_out)
+        swapped = False
+        Couter = len(Master)
+        for i in range(Couter):
+            if Master[i] < Template[i]:
+                Score_Ture.append((Master[i] / Template[i]) * 1000)
             else:
-                Score_Ture.append(0)
-                Chack.append(0)
-        return int(min(Score_Ture))
+                Score_Ture.append((Template[i] / Master[i]) * 1000)
+        for n in range(len(Score_Ture) - 1, 0, -1):
+            for i in range(n):
+                if Score_Ture[i] > Score_Ture[i + 1]:
+                    swapped = True
+                    Score_Ture[i], Score_Ture[i + 1] = Score_Ture[i + 1], Score_Ture[i]
+        for i in range(len(Score_Ture)):
+            if i < 5:
+                Result_Score += Score_Ture[i]
+        Result_Score = int(Result_Score / 5)
+        return Result_Score
 
     @staticmethod
     def Rule_Of_Thirds(ROT):
@@ -300,37 +301,41 @@ class Shape:
         return point
 
     @staticmethod
-    def Process_Outline(imgframe, imgTemplate, Left, Top, Right, Bottom):
-        global curMaxLoc
-        img = cv.imread(imgframe, 0)
-        template = cv.imread(imgTemplate, 0)
-        w, h = template.shape[::-1]
-        TemplateThreshold = 0.45
-        curMaxVal = 0
+    def Process_Outline(image, Template, Left, Top, Right, Bottom):
+        image = cv.imread(image, 0)
+        Template = cv.imread(Template, 0)
+        w, h = Template.shape[::-1]
         c = 0
+        TemplateThreshold = 0.4
+        curMaxVal = 0
+        curMaxTemplate = -1
+        curMaxLoc = (0, 0)
         for meth in ['cv.TM_CCOEFF_NORMED']:
             method = eval(meth)
             try:
-                crop_image_ = img[(Top - 45):(Bottom + 45), (Left - 45):(Right + 45)]
-                res = cv.matchTemplate(crop_image_, template, method)
+                image = image[(Top - ROI):(Bottom + ROI), (Left - ROI):(Right + ROI)]
+                res = cv.matchTemplate(image, Template, method)
             except:
-                crop_image = img[Top:Bottom, Left:Right]
-                res = cv.matchTemplate(crop_image, template, method)
+                image = image[Top:Bottom, Left:Right]
+                res = cv.matchTemplate(image, Template, method)
             min_val, max_val, min_loc, max_loc = cv.minMaxLoc(res)
             if max_val > TemplateThreshold and max_val > curMaxVal:
+                if method in [cv.TM_SQDIFF]:
+                    top_left = min_loc
+                else:
+                    top_left = max_loc
                 curMaxVal = max_val
                 curMaxTemplate = c
                 curMaxLoc = max_loc
             c = c + 1
-
-        try:
-            if curMaxTemplate == -1:
-                return 0, (0, 0), 0, 0, 0, 0
-            else:
-                # print((curMaxTemplate % 3, curMaxLoc, 1 - int(curMaxTemplate / 3) * 0.2, curMaxVal, w, h))
-                return curMaxTemplate % 3, curMaxLoc, 1 - int(curMaxTemplate / 3) * 0.2, curMaxVal, w, h
-        except:
-            return 0, (0, 0), 0, 0, 0, 0
+            try:
+                if curMaxTemplate == -1:
+                    return (0, (0, 0), 0, 0, (0, 0))
+                else:
+                    bottom_right = (top_left[0] + w, top_left[1] + h)
+                    return (curMaxTemplate % 3, curMaxLoc, 1 - int(curMaxTemplate / 3) * 0.2, curMaxVal, bottom_right)
+            except:
+                return (0, (0, 0), 0, 0, (0, 0))
 
 
 class CropImage:
@@ -343,11 +348,26 @@ class CropImage:
         crop_image = image[Top:Bottom, Left:Right]
         return crop_image
 
+
     @staticmethod
     def Crop_Image_Color(Imageframe, Left, Top, Right, Bottom):
         image = cv.imread(Imageframe, cv.COLOR_BGR2RGB)
         crop_image = image[Top:Bottom, Left:Right]
         return crop_image
+
+    @staticmethod
+    def Crop_find(image, Left, Top, Right, Bottom, top_left, bottom_right, scale):
+        image = cv.imread(image, 0)
+        if scale == 1:
+            image = image[(Top - ROI):(Bottom + ROI), (Left - ROI):(Right + ROI)]
+            Left = top_left[0]
+            Top = top_left[1]
+            Right = bottom_right[0]
+            Bottom = bottom_right[1]
+            image = image[Top:Bottom, Left:Right]
+        else:
+            image = image[Top:Bottom, Left:Right]
+        return image
 
 
 class Color:
@@ -394,11 +414,12 @@ class Save_Data:
             json.dump(Transition, json_file, indent=6)
 
     @staticmethod
-    def Save_Image(Partnumber,Counter,Image,Mode,Left,Top,Right,Bottom,Color,Score,Score_Set,Result):
+    def Save_Image(Partnumber,Counter,Image,Mode,Left,Top,Right,Bottom,Color,Score,Score_Set,Result,top_left):
         named_tuple = time.localtime()
         Time = time.strftime("%Y%m%d%H%M%S", named_tuple)
         for s in range(Counter):
-                cv.rectangle(Image[s], (Left[s], Top[s]), (Right[s], Bottom[s]), Color[s], 3)
+                cv.rectangle(Image[s], (Left[s] + top_left[0] - ROI, Top[s] + top_left[1] - ROI), (Right[s] + top_left[0] - ROI, Bottom[s] + top_left[1] - ROI), Color[s], 2)
+                cv.rectangle(Image[s], (Left[s] - ROI, Top[s] - ROI), (Right[s] + ROI, Bottom[s] + ROI), Color[s], 2)
                 cv.putText(Image[s], "Mode : " + Mode[s], (10, 25), cv.FONT_HERSHEY_SIMPLEX, 1, Color[s], 2)
                 cv.putText(Image[s], "Score : " + str(Score[s]) + " / " + str(Score_Set[s]), (10, 55), cv.FONT_HERSHEY_SIMPLEX, 1, Color[s], 2)
                 cv.putText(Image[s], "Time : " + str(Time) + "", (10, 85), cv.FONT_HERSHEY_SIMPLEX, 1, Color[s], 2)
@@ -532,7 +553,7 @@ class App(customtkinter.CTk):
         self.Loop.start()
         self.Keepdata = ""
 
-        self.TCP()
+        #self.TCP()
         self.AddMaster()
 
         customtkinter.CTkLabel(master=self, text="Vision Inspection", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=50, weight="bold"), corner_radius=10).place(x=140, y=10)
@@ -888,9 +909,7 @@ class App(customtkinter.CTk):
         self.Save_Previous =0
         self.Save_Next = 0
         self.Keep = 0
-
         self.index = 0
-
         ViewNG = Toplevel(self)
         ViewNG.title(Side)
         PointNG = []
@@ -912,10 +931,9 @@ class App(customtkinter.CTk):
 
         customtkinter.CTkButton(ViewNG, text="Previous", text_color="#00B400", hover_color="#94FF8B", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=50, weight="bold"), corner_radius=10, fg_color=("#353535"),command= lambda : Previous()).place(x=700, y=800)
         customtkinter.CTkButton(ViewNG, text="Next", text_color="#00B400", hover_color="#94FF8B", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=50, weight="bold"), corner_radius=10, fg_color=("#353535"),command= lambda : Next()).place(x=1000, y=800)
-
-
         ViewNG.configure(background='#232323')
         ViewNG.attributes('-fullscreen', True)
+
         def Destory():
             ViewNG.destroy()
 
@@ -985,9 +1003,9 @@ class App(customtkinter.CTk):
                 self.Run_Single = True
                 Filename = "Current.png"
                 cv.imwrite(Filename, frame0.read()[1])
-                ImageSave, ColorView, Color_Save_Image, Result, Score, Color_Point = Main.Main(self.PartNumber_S, Filename, self.CouterPoint_Single, self.Point_Mode_S, self.Point_Left_S, self.Point_Top_S, self.Point_Right_S, self.Point_Bottom_S, self.Point_Score_S, self.Point_Color_S)
-                image = Main.ViewImage_Snap(Filename, self.CouterPoint_Single, self.Point_Left_S, self.Point_Top_S, self.Point_Right_S, self.Point_Bottom_S, Score, ColorView)
-                Save_Data.Save_Image(self.PartNumber_S, self.CouterPoint_Single, ImageSave, self.Point_Mode_S, self.Point_Left_S, self.Point_Top_S, self.Point_Right_S, self.Point_Bottom_S, Color_Save_Image, Score, self.Point_Score_S, Result)
+                ImageSave, ColorView, Color_Save_Image, Result, Score, Color_Point,top_left = Main.Main(self.PartNumber_S, Filename, self.CouterPoint_Single, self.Point_Mode_S, self.Point_Left_S, self.Point_Top_S, self.Point_Right_S, self.Point_Bottom_S, self.Point_Score_S, self.Point_Color_S)
+                image = Main.ViewImage_Snap(Filename, self.CouterPoint_Single, self.Point_Left_S, self.Point_Top_S, self.Point_Right_S, self.Point_Bottom_S, Score, ColorView, top_left)
+                Save_Data.Save_Image(self.PartNumber_S, self.CouterPoint_Single, ImageSave, self.Point_Mode_S, self.Point_Left_S, self.Point_Top_S, self.Point_Right_S, self.Point_Bottom_S, Color_Save_Image, Score, self.Point_Score_S, Result,top_left)
                 Save_Data.Save_Score(self.PartNumber_S, self.BatchNumber_S, self.MachineName, self.CouterPoint_Single, Score, Result)
                 Data = Main.ShowResult(Result)
                 if Data is True:
@@ -1010,9 +1028,9 @@ class App(customtkinter.CTk):
                 self.Run_Right = True
                 Filename = "Current.png"
                 cv.imwrite(Filename, frame1.read()[1])
-                ImageSave, ColorView, Color_Save_Image, Result, Score, Color_Point = Main.Main(self.PartNumber_R,Filename,self.CouterPoint_Right,self.Point_Mode_R,self.Point_Left_R, self.Point_Top_R, self.Point_Right_R, self.Point_Bottom_R,self.Point_Score_R,self.Point_Color_R)
-                image = Main.ViewImage_Snap(Filename, self.CouterPoint_Right, self.Point_Left_R, self.Point_Top_R, self.Point_Right_R, self.Point_Bottom_R, Score, ColorView)
-                Save_Data.Save_Image(self.PartNumber_R,self.CouterPoint_Right,ImageSave,self.Point_Mode_R,self.Point_Left_R,self.Point_Top_R,self.Point_Right_R,self.Point_Bottom_R,Color_Save_Image,Score,self.Point_Score_R,Result)
+                ImageSave, ColorView, Color_Save_Image, Result, Score, Color_Point,top_left = Main.Main(self.PartNumber_R,Filename,self.CouterPoint_Right,self.Point_Mode_R,self.Point_Left_R, self.Point_Top_R, self.Point_Right_R, self.Point_Bottom_R,self.Point_Score_R,self.Point_Color_R)
+                image = Main.ViewImage_Snap(Filename, self.CouterPoint_Right, self.Point_Left_R, self.Point_Top_R, self.Point_Right_R, self.Point_Bottom_R, Score, ColorView,top_left)
+                Save_Data.Save_Image(self.PartNumber_R,self.CouterPoint_Right,ImageSave,self.Point_Mode_R,self.Point_Left_R,self.Point_Top_R,self.Point_Right_R,self.Point_Bottom_R,Color_Save_Image,Score,self.Point_Score_R,Result,top_left)
                 Save_Data.Save_Score(self.PartNumber_R, self.BatchNumber_R, self.MachineName,self.CouterPoint_Right,Score,Result)
                 Data = Main.ShowResult(Result)
                 if Data is True:
@@ -1034,9 +1052,9 @@ class App(customtkinter.CTk):
                 self.Run_Left = True
                 Filename = "Current.png"
                 cv.imwrite(Filename, frame0.read()[1])
-                ImageSave, ColorView, Color_Save_Image, Result, Score, Color_Point = Main.Main(self.PartNumber_L, Filename, self.CouterPoint_Left, self.Point_Mode_L, self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L, self.Point_Score_L, self.Point_Color_L)
-                image = Main.ViewImage_Snap(Filename, self.CouterPoint_Left, self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L, Score, ColorView)
-                Save_Data.Save_Image(self.PartNumber_L, self.CouterPoint_Left, ImageSave, self.Point_Mode_L, self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L, Color_Save_Image, Score, self.Point_Score_L, Result)
+                ImageSave, ColorView, Color_Save_Image, Result, Score, Color_Point,top_left = Main.Main(self.PartNumber_L, Filename, self.CouterPoint_Left, self.Point_Mode_L, self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L, self.Point_Score_L, self.Point_Color_L)
+                image = Main.ViewImage_Snap(Filename, self.CouterPoint_Left, self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L, Score, ColorView,top_left)
+                Save_Data.Save_Image(self.PartNumber_L, self.CouterPoint_Left, ImageSave, self.Point_Mode_L, self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L, Color_Save_Image, Score, self.Point_Score_L, Result,top_left)
                 Save_Data.Save_Score(self.PartNumber_L, self.BatchNumber_L, self.MachineName, self.CouterPoint_Left, Score, Result)
                 Data = Main.ShowResult(Result)
                 if Data is True:

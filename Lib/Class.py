@@ -1,4 +1,4 @@
-"""""""""""
+"""
 
 import os
 import cv2
@@ -7,7 +7,7 @@ import numpy as np
 IMAGES_PATH = 'images/'
 
 def load_image(image_path):
-   
+
     # Create the Image directory to save any plots
     if not os.path.exists(IMAGES_PATH):
         os.makedirs(IMAGES_PATH)
@@ -35,14 +35,17 @@ def convolve2d(image, kernel):
 
     return output
 
-input_image = load_image('Point 2_Outline.bmp')
-print(input_image)
+input_image = load_image('Point 1_Outline.bmp')
+
 print("____________________________________")
 # kernel to be used to get sharpened image
 #KERNEL = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]])
 KERNEL = np.array([[-1, -1, -1], [-1, 8, -1], [-1, -1, -1]])
 image_sharpen = convolve2d(input_image, kernel=KERNEL)
-print(image_sharpen)
+
+cv2.imshow("input_image",image_sharpen)
+cv2.waitKey(0)
+#print(image_sharpen)
 #image_sharpen = image_sharpen/255
 #for x in range(len(image_sharpen)):
  #   print(image_sharpen[x])
@@ -61,14 +64,12 @@ cv2.imwrite(IMAGES_PATH + 'box_blur.jpg', imageboxblur)
 # kernel to be used for gaussian blur
 imagegaussianblur = convolve2d(input_image, kernel=np.array([[1, 2, 1], [2, 4, 2], [1, 2, 1]])/16.0)
 cv2.imwrite(IMAGES_PATH + 'gaussian_blur.jpg', imagegaussianblur)
-    
-    """""""""""
-
-'''import cv2
+"""
+import cv2
 import matplotlib.pyplot as plt
 
 # Load an example image
-image = cv2.imread("Point1_Template.bmp")
+image = cv2.imread("Point 2.bmp")
 
 # Convert the image to the LAB color space
 lab_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -83,17 +84,17 @@ shifted_image = cv2.cvtColor(shifted_image, cv2.COLOR_BGR2RGB)
 fig, ax = plt.subplots(ncols=2, figsize=(8, 4))
 ax[0].imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
 ax[0].set_title("Original")
-ax[1].imshow(cv2.cvtColor(shifted_image, cv2.COLOR_BGR2RGB)) s
+ax[1].imshow(cv2.cvtColor(shifted_image, cv2.COLOR_BGR2RGB))
 ax[1].set_title("Shifted")
-plt.show()'''
+plt.show()
+
 from time import sleep
 from threading import Thread
 from _thread import interrupt_main
 from signal import signal
 from signal import SIGINT
 import sys
-
-
+"""
 def handle_sigint(signalnum, frame):
     print("xxx")
 
@@ -113,4 +114,4 @@ class common():
 common(handle_sigint,1)
 while True:
     print("Ball")
-    sleep(1)
+    sleep(1)"""
