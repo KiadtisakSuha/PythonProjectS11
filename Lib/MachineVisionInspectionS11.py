@@ -69,7 +69,7 @@ class GetAPI:
         side = []
         data = []
         api_url = "https://api.bkf.co.th/APIGateway_DB_BKF/GetCurrentMachineStatus?machineNickName="+Machine
-        data_file = 'Part.json'
+        data_file = 'Planning Data.json'
         try:
             with urllib.request.urlopen(api_url, timeout=1) as response:
                 json_api = json.loads(response.read())
@@ -520,8 +520,8 @@ class Packing:
         return packing_counter
 
 class App(customtkinter.CTk):
-    customtkinter.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
-    customtkinter.set_default_color_theme("green")  # Themes: "blue" (standard), "green", "dark-blue"
+    customtkinter.set_appearance_mode("Dark")
+    customtkinter.set_default_color_theme("green")
 
     def __init__(self):
         super().__init__()
@@ -531,6 +531,9 @@ class App(customtkinter.CTk):
         # self.state('zoomed')
         self.attributes('-fullscreen', True)
         self.MachineName = Machine
+        self.CouterPoint_Single = 0
+        self.CouterPoint_Left = 0
+        self.CouterPoint_Right = 0
         self.CouterOK_Left = 0
         self.CouterNG_Left = 0
         self.CouterOK_Right = 0
@@ -1033,7 +1036,8 @@ class App(customtkinter.CTk):
                 self.ImageReal_Single.imgtk = image
                 self.ImageReal_Single.configure(image=image)
                 self.View_Point_Single(Color_Point)
-
+            elif self.CouterPoint_Single == 0:
+                self.message = "Error"
 
         elif self.data == "Snap02":#Right
             if self.CouterPoint_Right != 0:
@@ -1058,6 +1062,8 @@ class App(customtkinter.CTk):
                 self.ImageReal_Right.imgtk = image
                 self.ImageReal_Right.configure(image=image)
                 self.View_Point_Right(Color_Point)
+            elif self.CouterPoint_Right == 0:
+                self.message = "Error"
 
         elif self.data == "Snap03":#Left
             if self.CouterPoint_Left != 0:
@@ -1082,6 +1088,8 @@ class App(customtkinter.CTk):
                 self.ImageReal_Left.imgtk = image
                 self.ImageReal_Left.configure(image=image)
                 self.View_Point_Left(Color_Point)
+            elif self.CouterPoint_Left == 0:
+                self.message = "Error"
 
     def server_program(self):
         self.data = self.conn.recv(128).decode()
