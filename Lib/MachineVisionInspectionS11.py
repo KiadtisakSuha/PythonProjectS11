@@ -20,18 +20,29 @@ import socket
 #API = "https://api.bkf.co.th/APIGateway_DB_BKF/GetCurrentMachineStatus?machineNickName=S11"
 ROI = 15
 font = "arial"
-Camera_Qutity = 2
-if Camera_Qutity == 1:
+
+with open('Setting Paramiter.json', 'r') as json_file:
+    Setting_Paramiter = json.loads(json_file.read())
+Quantity_Cam = Setting_Paramiter[0]["Quantity_Cam"]
+Board_Name = Setting_Paramiter[0]["Board_Name"]
+Machine = Setting_Paramiter[0]["MachineName"]
+Mode = Setting_Paramiter[0]["Mode"]
+Port = Setting_Paramiter[0]["Port"]
+IP = Setting_Paramiter[0]["IP"]
+if Quantity_Cam == 1:
     frame0 = cv.VideoCapture(0, cv.CAP_DSHOW)
     frame0.set(cv.CAP_PROP_FRAME_WIDTH, 1024)
     frame0.set(cv.CAP_PROP_FRAME_HEIGHT, 768)
-elif Camera_Qutity == 2:
+elif Quantity_Cam == 2:
     frame0 = cv.VideoCapture(0, cv.CAP_DSHOW)
     frame1 = cv.VideoCapture(1, cv.CAP_DSHOW)
     frame0.set(cv.CAP_PROP_FRAME_WIDTH, 1024)
     frame0.set(cv.CAP_PROP_FRAME_HEIGHT, 768)
     frame1.set(cv.CAP_PROP_FRAME_WIDTH, 1024)
     frame1.set(cv.CAP_PROP_FRAME_HEIGHT, 768)
+
+
+
 
 
 class GetEmp:
@@ -57,7 +68,7 @@ class GetAPI:
         method = ["PartNumber", "BatchNumber", "PartName", "CustomerPartNumber", "PackingStd"]
         side = []
         data = []
-        api_url = "https://api.bkf.co.th/APIGateway_DB_BKF/GetCurrentMachineStatus?machineNickName=S11"
+        api_url = "https://api.bkf.co.th/APIGateway_DB_BKF/GetCurrentMachineStatus?machineNickName="+Machine
         data_file = 'Part.json'
         try:
             with urllib.request.urlopen(api_url, timeout=1) as response:
@@ -519,7 +530,7 @@ class App(customtkinter.CTk):
         self.geometry("1920x1020+0+0")
         # self.state('zoomed')
         self.attributes('-fullscreen', True)
-        self.MachineName = "S11"
+        self.MachineName = Machine
         self.CouterOK_Left = 0
         self.CouterNG_Left = 0
         self.CouterOK_Right = 0
@@ -534,20 +545,24 @@ class App(customtkinter.CTk):
 
         self.Image_logo = GetImage()
         #host = socket.gethostname()
-        """host = "192.168.128.5"
-        port = 9005
-        self.client_socket = socket.socket()
-        self.client_socket.connect((host, port))
-        self.Ready = False"""
-        host = socket.gethostname()
-        port = 9005
-        server_socket = socket.socket()
-        server_socket.bind((host, port))
-        server_socket.listen(2)
-        self.conn, address = server_socket.accept()
 
-        self.Loop = InfiniteTimer(0.1, self.server_program)
-        self.Loop.start()
+
+        if Mode == 3:
+            host = socket.gethostname()
+            server_socket = socket.socket()
+            server_socket.bind((host, Port))
+            server_socket.listen(2)
+            self.conn, address = server_socket.accept()
+            self.Loop = InfiniteTimer(0.1, self.server_program)
+            self.Loop.start()
+        elif Mode == 4:
+            host = socket.gethostname()
+            self.client_socket = socket.socket()
+            self.client_socket.connect((host, Port))
+            self.Ready = False
+            self.Loop = InfiniteTimer(0.1, self.client_program)
+            self.Loop.start()
+
         self.Keepdata = ""
 
         #self.TCP()
@@ -571,7 +586,7 @@ class App(customtkinter.CTk):
             color = "#00B400"
         else:
             color = "#D8D874"
-        customtkinter.CTkLabel(master=self, text="S11", text_color=color, font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=65, weight="bold")).place(x=10, y=0)
+        customtkinter.CTkLabel(master=self, text=Machine, text_color=color, font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=65, weight="bold")).place(x=10, y=0)
         self.Run_Left = self.Run_Right = self.Run_Single = False
 
 
@@ -715,15 +730,14 @@ class App(customtkinter.CTk):
                 self.Packing_R_Show.place(x=1490, y=100)
 
             elif self.API[1][0] == "Left":
-                self.ImageReal_Right = tk.Button(self, bg="White", command=lambda: self.ViewImagePart(self.PartNumber_R))
-                self.ImageReal_Right.place(x=960, y=260)
+                self.ImageReal_Left = tk.Button(self, bg="White", command=lambda: self.ViewImagePart(self.PartNumber_L))
                 self.ImageReal_Left.place(x=0, y=260)
                 self.PartNumber_L = self.API[2][0]
                 self.BatchNumber_L = self.API[2][1]
                 self.PartName_L = self.API[2][2]
                 self.CustomerPartNumber_L = self.API[2][3]
                 self.Packing_L = self.API[2][4]
-                self.CouterPacking_Right = Packing.Read_Priter(self.PartNumber_R)
+                self.CouterPacking_Right = Packing.Read_Priter(self.PartNumber_L)
                 self.PartNumber = "|"+"|"+self.PartNumber_L
 
                 self.CouterPoint_Left = ReadFile.ReadFile_Image(self.PartNumber_L)
@@ -1008,6 +1022,7 @@ class App(customtkinter.CTk):
                 if Data is True:
                     self.message = "OK"
                     self.CouterOK_Single += 1
+
                     self.OK_S.configure(text="NG : " + str(self.CouterOK_Single))
                     packing_counter = Packing.Counter_Printer(self.PartNumber_S, self.Packing_S)
                     self.Packing_S_Show.configure(text=str(packing_counter) + "/" + str(self.Packing_S))
@@ -1104,7 +1119,7 @@ class App(customtkinter.CTk):
         self.conn.send(self.message.encode())
         self.message = ""
 
-    """def client_program(self):
+    def client_program(self):
             self.data = self.client_socket.recv(128).decode()
         #if self.data != self.Keepdata:
             if self.data == "Vision":
