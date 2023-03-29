@@ -16,6 +16,7 @@ import logging
 from tkinter import messagebox
 import customtkinter
 import socket
+import subprocess
 
 #API = "https://api.bkf.co.th/APIGateway_DB_BKF/GetCurrentMachineStatus?machineNickName=S11"
 ROI = 15
@@ -46,7 +47,7 @@ elif Quantity_Cam == 2:
 
 
 class GetEmp:
-    def __int__(self):
+    def Information():
         dirName = 'Information'
         try:
             os.mkdir(dirName)
@@ -524,6 +525,7 @@ class App(customtkinter.CTk):
     customtkinter.set_default_color_theme("green")
 
     def __init__(self):
+        GetEmp.Information()
         super().__init__()
         #self.PartNumber_R = self.BatchNumber_R = self.PartName_R = self.CustomerPartNumber_R = self.Packing_R = self.PartNumber_L = self.BatchNumber_L = self.PartName_L = self.CustomerPartNumber_L = self.Packing_L = ""
         self.title('Machine Vision Inspection 1.0.0')
@@ -542,7 +544,6 @@ class App(customtkinter.CTk):
         self.CouterNG_Single = 0
         self.Login = None
         self.ViewImage = False
-
         self.View_Point_Clear()
         self.View()
 
@@ -550,7 +551,7 @@ class App(customtkinter.CTk):
         #host = socket.gethostname()
 
 
-        if Mode == 3:
+        """if Mode == 3:
             host = socket.gethostname()
             server_socket = socket.socket()
             server_socket.bind((host, Port))
@@ -565,7 +566,7 @@ class App(customtkinter.CTk):
             self.Ready = False
             self.Loop = InfiniteTimer(0.1, self.client_program)
             self.Loop.start()
-
+"""
         self.Keepdata = ""
 
         #self.TCP()
@@ -1172,7 +1173,20 @@ class App(customtkinter.CTk):
         self.image_logo.configure(image=self.Image_logo.BKFImage)
 
     def Destory(self):
-        app.destroy()
+        response = messagebox.askquestion("Close Programe", "Are you sure?", icon='warning')
+        if response == "yes":
+            if Quantity_Cam == 1:
+                frame0.release()
+            elif Quantity_Cam == 2:
+                frame0.release()
+                frame1.release()
+            elif Quantity_Cam == 3:
+                frame0.release()
+                frame1.release()
+                frame2.release()
+            cv.destroyAllWindows()
+            app.destroy()
+            subprocess.call([r'TerminatedProcess.bat'])
 
     def Camera(self):
             self.Camera_1 = cv.cvtColor(frame0.read()[1], cv.COLOR_BGR2RGB)
