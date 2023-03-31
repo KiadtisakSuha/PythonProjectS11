@@ -551,10 +551,12 @@ class App(customtkinter.CTk):
         #host = socket.gethostname()
 
 
-        """if Mode == 3:
-            host = socket.gethostname()
-            server_socket = socket.socket()
-            server_socket.bind((host, Port))
+        if Mode == 3:
+            host = IP
+            port = Port  # initiate port no above 1024
+            server_socket = socket.socket()  # get instance
+            # look closely. The bind() function takes tuple as argument
+            server_socket.bind((host, port))  # bind host address and port together
             server_socket.listen(2)
             self.conn, address = server_socket.accept()
             self.Loop = InfiniteTimer(0.1, self.server_program)
@@ -566,7 +568,7 @@ class App(customtkinter.CTk):
             self.Ready = False
             self.Loop = InfiniteTimer(0.1, self.client_program)
             self.Loop.start()
-"""
+
         self.Keepdata = ""
 
         #self.TCP()

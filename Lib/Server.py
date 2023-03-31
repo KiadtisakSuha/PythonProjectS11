@@ -1,7 +1,7 @@
 import socket
+print(socket.gethostname())
 
-
-def server_program():
+"""def server_program():
     # get the hostname
     host = socket.gethostname()
     port = 9000  # initiate port no above 1024
@@ -24,4 +24,4 @@ def server_program():
 
 
 if __name__ == '__main__':
-    server_program()
+    server_program()"""
