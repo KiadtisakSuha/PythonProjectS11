@@ -18,6 +18,15 @@ import customtkinter
 import socket
 import subprocess
 
+"""self.ImageReal_Left = customtkinter.CTkButton(master = self, bg="White", command=lambda: self.ViewImagePart(self.PartNumber_L))
+            self.ImageReal_Right = customtkinter.CTkButton(master = self, bg="White", command=lambda: self.ViewImagePart(self.PartNumber_R))
+
+
+
+self.ImageReal_Left = tk.Button(self, bg="White", command=lambda: self.ViewImagePart(self.PartNumber_L))
+            self.ImageReal_Right = tk.Button(self, bg="White", command=lambda: self.ViewImagePart(self.PartNumber_R))"""
+
+
 #API = "https://api.bkf.co.th/APIGateway_DB_BKF/GetCurrentMachineStatus?machineNickName=S11"
 ROI = 15
 font = "arial"
@@ -92,13 +101,17 @@ class GetAPI:
 
 class GetImage:
     def __init__(self):
-        self.BKFImage = Image.open(r"BKF.png")
-        self.BKFImage = self.BKFImage.resize((140, 55))
-        self.BKFImage = ImageTk.PhotoImage(self.BKFImage)
+        #self.BKFImage = tk.PhotoImage(file="BKF.png")
+        self.BKFImage = customtkinter.CTkImage(Image.open("BKF.png"), size=(140, 55))
+        #self.BKFImage = Image.open(r"BKF.png")
+        #self.BKFImage = self.BKFImage.resize((140, 55))
+        #self.BKFImage = ImageTk.PhotoImage(self.BKFImage)
 
-        self.ExitImage = Image.open(r"Exit.PNG")
-        self.ExitImage = self.ExitImage.resize((140, 55))
-        self.ExitImage = ImageTk.PhotoImage(self.ExitImage)
+        #self.ExitImage = tk.PhotoImage(file="Exit.png")
+        self.ExitImage = customtkinter.CTkImage(Image.open("Exit.PNG"), size=(140, 55))
+        #self.ExitImage = Image.open(r"Exit.PNG")
+        #self.ExitImage = self.ExitImage.resize((140, 55))
+        #self.ExitImage = ImageTk.PhotoImage(self.ExitImage)
 
 class InfiniteTimer():
     def __init__(self, seconds, target):
@@ -208,7 +221,7 @@ class Main:
                     Template = r"" + Partnumber + "\Master""\\""Point" + str(x + 1) + "_Template.bmp"
                     (template, top_left, scale, val, bottom_right) = Shape.Process_Outline(FileImage, Template, Left[x], Top[x], Right[x], Bottom[x])
                     #print(template, top_left, scale, val, bottom_right)
-                    Master_Image = CropImage.Crop_find(FileImage,Left[x],Top[x],Right[x],Bottom[x],top_left,bottom_right,scale)
+                    Master_Image = CropImage.Crop_find(FileImage,Left[x],Top[x],Right[x],Bottom[x],top_left,bottom_right,scale,Mode[x])
                     #Master_Image = CropImage.Crop_Image(FileImage, Left[x], Top[x], Right[x], Bottom[x], Mode[x])
                     if scale == 1 and (val * 1000) >= Score_Set[x]:
                         if Mode[x] == "Shape":
@@ -226,7 +239,7 @@ class Main:
                                 Color_Save_Image.append((0, 0, 255))
                                 Result.append(0)
                         elif Mode[x] == "Color":
-                            Score_Color = Color.ColorScore(Color_Data[x], Color.ReadRBG(Master_Image))
+                            Score_Color = ColorProcessing.ColorScore(Color_Data[x], ColorProcessing.ReadRBG(Master_Image))
                             Score.append(Score_Color)
                             if Score_Color >= Score_Set[x]:
                                 ColorView.append((0, 255, 0))
@@ -368,8 +381,11 @@ class CropImage:
         return crop_image
 
     @staticmethod
-    def Crop_find(image, Left, Top, Right, Bottom, top_left, bottom_right, scale):
-        image = cv.imread(image, 0)
+    def Crop_find(image, Left, Top, Right, Bottom, top_left, bottom_right, scale, mode):
+        if mode == "Shape":
+            image = cv.imread(image,0)
+        elif mode == "Color":
+            image = cv.imread(image, 1)
         if scale == 1:
             image = image[(Top - ROI):(Bottom + ROI), (Left - ROI):(Right + ROI)]
             Left = top_left[0]
@@ -382,7 +398,7 @@ class CropImage:
         return image
 
 
-class Color:
+class ColorProcessing:
     @staticmethod
     def ReadRBG(image):
         r_total = 0
@@ -464,7 +480,7 @@ class Save_Data:
                             item[i]["Point" + str_][0]["Right"] = Right
                             item[i]["Point" + str_][0]["Bottom"] = Bottom
                             item[i]["Point" + str_][0]["Score"] = Score
-                            item[i]["Point" + str_][0]["Color"] = Color.ReadRBG(Master_Image)
+                            item[i]["Point" + str_][0]["Color"] = ColorProcessing.ReadRBG(Master_Image)
                             with open(Partnumber + '/' + Partnumber + '.json', 'w') as json_file:
                                 json.dump(item, json_file, indent=6)
                     except:
@@ -474,7 +490,7 @@ class Save_Data:
                         try:
                             logging.debug(item[i - 1])
                             item.append({'' + Point + '': [
-                                {"Emp ID": Emp_ID, "Mode": Mode, 'Left': Left, 'Top': Top, "Right": Right, "Bottom": Bottom, 'Score': Score, 'Color': Color.ReadRBG(Master_Image)}]})
+                                {"Emp ID": Emp_ID, "Mode": Mode, 'Left': Left, 'Top': Top, "Right": Right, "Bottom": Bottom, 'Score': Score, 'Color': ColorProcessing.ReadRBG(Master_Image)}]})
                             with open(Partnumber + '/' + Partnumber + '.json', 'w') as json_file:
                                 json.dump(item, json_file, indent=6)
                         except:
@@ -483,7 +499,7 @@ class Save_Data:
             if Point == "Point1":
                 item = [
                     {'' + Point + '': [
-                        {"Emp ID": Emp_ID, "Mode": Mode, 'Left': Left, 'Top': Top, "Right": Right, "Bottom": Bottom, 'Score': Score, 'Color': Color.ReadRBG(Master_Image)}]}]
+                        {"Emp ID": Emp_ID, "Mode": Mode, 'Left': Left, 'Top': Top, "Right": Right, "Bottom": Bottom, 'Score': Score, 'Color': ColorProcessing.ReadRBG(Master_Image)}]}]
                 with open(Partnumber + '/' + Partnumber + '.json', 'w') as json_file:
                     json.dump(item, json_file, indent=6)
 
@@ -542,6 +558,7 @@ class App(customtkinter.CTk):
         self.CouterNG_Right = 0
         self.CouterOK_Single = 0
         self.CouterNG_Single = 0
+        self.new_scaling_float = 1.0
         self.Login = None
         self.ViewImage = False
         self.View_Point_Clear()
@@ -576,13 +593,13 @@ class App(customtkinter.CTk):
 
         customtkinter.CTkLabel(master=self, text="Vision Inspection", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=50, weight="bold"), corner_radius=10).place(x=140, y=10)
         customtkinter.CTkLabel(master=self, text="v 1.0.0", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=15, weight="bold"), corner_radius=10).place(x=490, y=10)
-        self.image_logo = tk.Button(self, bg="#232323", image=self.Image_logo.BKFImage, command=self.Destory, bd=0)
+        self.image_logo = customtkinter.CTkButton(master = self, image=self.Image_logo.BKFImage, command=self.Destory,text="",fg_color="#353535",hover_color="#353535")
         self.image_logo.place(x=1755, y=10)
         self.image_logo.bind("<Enter>", self.on_enter)
         self.image_logo.bind("<Leave>", self.on_leave)
         self.Camera()
-        #self.scaling_optionemenu = customtkinter.CTkOptionMenu(master=self, values=["50%", "60%", "70%","80%", "90%", "100%", "110%", "120%"], command=self.change_scaling_event)
-        #self.scaling_optionemenu.place(x=1000, y=80)
+        self.scaling_optionemenu = customtkinter.CTkOptionMenu(master=self, values=["50%", "60%", "70%","80%", "90%", "100%"], command=self.change_scaling_event)
+        self.scaling_optionemenu.place(x=580, y=25)
         customtkinter.CTkButton(master=self, text="Reorder", text_color="#00B400", hover_color="#B4F0B4", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=("#353535"),
                                 command=lambda: [self.forget(),self.View_Point_Clear(),self.View()]).place(x=1570, y=10)
 
@@ -615,8 +632,8 @@ class App(customtkinter.CTk):
 
 
         if len(self.API[1]) == 2:
-            self.ImageReal_Left = tk.Button(self, bg="White", command=lambda: self.ViewImagePart(self.PartNumber_L))
-            self.ImageReal_Right = tk.Button(self, bg="White", command=lambda: self.ViewImagePart(self.PartNumber_R))
+            self.ImageReal_Left = customtkinter.CTkLabel(master=self,text="")
+            self.ImageReal_Right = customtkinter.CTkLabel(master=self,text="")
             self.ImageReal_Left.place(x=0, y=260)
             self.ImageReal_Right.place(x=960, y=260)
             self.PartNumber_R = self.API[2][0]
@@ -696,7 +713,8 @@ class App(customtkinter.CTk):
 
         elif len(self.API[1]) == 1:#
             if self.API[1][0] == "Right":
-                self.ImageReal_Right = tk.Button(self, bg="White", command=lambda: self.ViewImagePart(self.PartNumber_R))
+                self.ImageReal_Right = customtkinter.CTkLabel(master=self, text="")
+                #self.ImageReal_Right = tk.Button(self, bg="White", command=lambda: self.ViewImagePart(self.PartNumber_R))
                 self.ImageReal_Right.place(x=960, y=260)
                 self.PartNumber_R = self.API[2][0]
                 self.BatchNumber_R = self.API[2][1]
@@ -736,7 +754,8 @@ class App(customtkinter.CTk):
                 self.Packing_R_Show.place(x=1490, y=100)
 
             elif self.API[1][0] == "Left":
-                self.ImageReal_Left = tk.Button(self, bg="White", command=lambda: self.ViewImagePart(self.PartNumber_L))
+                self.ImageReal_Left = customtkinter.CTkLabel(master=self, text="")
+                #self.ImageReal_Left = tk.Button(self, bg="White", command=lambda: self.ViewImagePart(self.PartNumber_L))
                 self.ImageReal_Left.place(x=0, y=260)
                 self.PartNumber_L = self.API[2][0]
                 self.BatchNumber_L = self.API[2][1]
@@ -784,7 +803,9 @@ class App(customtkinter.CTk):
                 self.Packing_S = self.API[2][4]
                 self.CouterPacking_Single = Packing.Read_Priter(self.PartNumber_S)
                 self.PartNumber = self.PartNumber_S + "|"+ "|"
-                self.ImageReal_Single = tk.Button(self, bg="White", command=lambda: self.ViewImagePart(self.PartNumber_S))
+                #self.ImageReal_Left = customtkinter.CTkLabel(master=self, text="")
+                self.ImageReal_Single = customtkinter.CTkLabel(master=self, text="")
+                #self.ImageReal_Single = tk.Button(self, bg="White", command=lambda: self.ViewImagePart(self.PartNumber_S))
                 self.ImageReal_Single.place(x=450, y=280)
                 self.CouterPoint_Single = ReadFile.ReadFile_Image(self.PartNumber_S)
                 self.Point_Left_S, self.Point_Top_S, self.Point_Right_S, self.Point_Bottom_S, self.Point_Score_S, self.Point_Mode_S, self.Point_Color_S,self.Color_S = ReadFile.ReadFile_Score(self.PartNumber_S, self.CouterPoint_Single)
@@ -981,7 +1002,7 @@ class App(customtkinter.CTk):
         def Previous():
             self.Stand = True
             self.index = (self.index - 1) % len(self.Image_NG)
-            print(self.index)
+            #print(self.index)
             Point = PointNG_value.get()
             image_path_NG = "Record/" + Partnumber + "/NG/" + Point + "/" + self.Image_NG[self.index]
             imageNG = cv.imread(image_path_NG)
@@ -1039,8 +1060,8 @@ class App(customtkinter.CTk):
                 self.ImageReal_Single.imgtk = image
                 self.ImageReal_Single.configure(image=image)
                 self.View_Point_Single(Color_Point)
-            elif self.CouterPoint_Single == 0:
-                self.message = "Error"
+            """elif self.CouterPoint_Single == 0:
+                self.message = "Error"""
 
         elif self.data == "Snap02":#Right
             if self.CouterPoint_Right != 0:
@@ -1170,7 +1191,6 @@ class App(customtkinter.CTk):
 
     def on_enter(self, event):
         self.image_logo.configure(image=self.Image_logo.ExitImage)
-
     def on_leave(self, enter):
         self.image_logo.configure(image=self.Image_logo.BKFImage)
 
@@ -1193,11 +1213,13 @@ class App(customtkinter.CTk):
     def Camera(self):
             self.Camera_1 = cv.cvtColor(frame0.read()[1], cv.COLOR_BGR2RGB)
             Camera_1 = Image.fromarray(self.Camera_1)
-            Resize_1 = Camera_1.resize((950, 520))
+            height = int(950*self.new_scaling_float)
+            weight = int(520*self.new_scaling_float)
+            Resize_1 = Camera_1.resize((height, weight))
             self.Commit_1 = ImageTk.PhotoImage(image=Resize_1)
             self.Camera_2 = cv.cvtColor(frame1.read()[1], cv.COLOR_BGR2RGB)
             Camera_2 = Image.fromarray(self.Camera_2)
-            Resize_2 = Camera_2.resize((950, 520))
+            Resize_2 = Camera_2.resize((height, weight))
             self.Commit_2 = ImageTk.PhotoImage(image=Resize_2)
             if len(self.API[1]) == 2:
                 if self.Run_Left == False:
@@ -1399,8 +1421,8 @@ class App(customtkinter.CTk):
         self.Login.deiconify()
 
     def change_scaling_event(self,new_scaling: str):
-        new_scaling_float = int(self.scaling_optionemenu.get().replace("%", "")) / 100
-        customtkinter.set_widget_scaling(new_scaling_float)
+        self.new_scaling_float = int(self.scaling_optionemenu.get().replace("%", "")) / 100
+        customtkinter.set_widget_scaling(self.new_scaling_float)
 
 
 

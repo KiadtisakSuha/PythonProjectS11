@@ -1,6 +1,12 @@
-import socket
+"""import socket
 print(socket.gethostname())
+import tkinter as tk
 
+root = tk.Tk()
+
+screen_width = root.winfo_screenwidth()
+screen_height = root.winfo_screenheight()
+print(screen_width,screen_height)"""
 """def server_program():
     # get the hostname
     host = socket.gethostname()
@@ -25,3 +31,37 @@ print(socket.gethostname())
 
 if __name__ == '__main__':
     server_program()"""
+import cv2 as cv
+class ColorProcessing:
+    @staticmethod
+    def ReadRBG(image):
+        r_total = 0
+        g_total = 0
+        b_total = 0
+        count = 0
+        for i in range(len(image)):
+            for j in range(len(image[i])):
+                r_total += image[i][j][0]
+                g_total += image[i][j][1]
+                b_total += image[i][j][2]
+                count += 1
+        return int(r_total / count), int(g_total / count), int(b_total / count)
+
+    @staticmethod
+    def ColorScore(Data1, Data2):
+        total = []
+        for i in range(len(Data1)):
+            if Data1[i] >= Data2[i]:
+                total.append((Data2[i] / Data1[i]) * 1000)
+            elif Data2[i] >= Data1[i]:
+                total.append((Data1[i] / Data2[i]) * 1000)
+            print(total)
+        return int(min(total))
+
+Color = [156,153,155]
+image = "Point1_Template.bmp"
+image = cv.imread(image, 1)
+Score_Color = ColorProcessing.ColorScore(Color, ColorProcessing.ReadRBG(image))
+print(Score_Color)
+cv.imshow("image",image)
+cv.waitKey(0)
