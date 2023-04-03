@@ -968,6 +968,8 @@ class App(customtkinter.CTk):
                     customtkinter.CTkLabel(master=self.Frame_Point, text="Point:" + str(Point_Single + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color[Point_Single])).place(x=450 + ((Point_Single - 10) * 190), y=1010)
 
     def ViewNG(self, Side, Partnumber):
+        NGheight = int(900 * self.new_scaling_float)
+        NGweight = int(630 * self.new_scaling_float)
         self.Image_NG = []
         self.Next = 0
         self.Previous = 0
@@ -982,7 +984,6 @@ class App(customtkinter.CTk):
         PointNG = []
         if Side == "NG_Left":
             Counter = self.CouterPoint_Left
-
         elif Side == "NG_Right":
             Counter = self.CouterPoint_Right
         elif Side == "NG_Single":
@@ -1017,13 +1018,13 @@ class App(customtkinter.CTk):
         def Next():
             if self.Stand is True:
                 self.index = (self.index + 1) % len(self.Image_NG)
-                print(self.index)
+
                 Point = PointNG_value.get()
                 image_path_NG = "Record/" + Partnumber + "/NG/" + Point + "/" + self.Image_NG[self.index]
                 imageNG = cv.imread(image_path_NG)
                 imageNG = cv.cvtColor(imageNG, cv.COLOR_BGR2RGB)
                 imageNG = Image.fromarray(imageNG)
-                photoNG = ImageTk.PhotoImage(imageNG.resize((900, 630)))
+                photoNG = ImageTk.PhotoImage(imageNG.resize((NGheight, NGweight)))
                 image_show_NG = tk.Label(ViewNG, image=photoNG)
                 image_show_NG.image = photoNG
                 image_show_NG.place(x=1000, y=100)
@@ -1037,18 +1038,19 @@ class App(customtkinter.CTk):
             imageNG = cv.imread(image_path_NG)
             imageNG = cv.cvtColor(imageNG, cv.COLOR_BGR2RGB)
             imageNG = Image.fromarray(imageNG)
-            photoNG = ImageTk.PhotoImage(imageNG.resize((900, 630)))
+            photoNG = ImageTk.PhotoImage(imageNG.resize((NGheight, NGweight)))
             image_show_NG = tk.Label(ViewNG, image=photoNG)
             image_show_NG.image = photoNG
             image_show_NG.place(x=1000, y=100)
 
         def ShowImageNG():
             Point = PointNG_value.get()
+
             image_path_Master = Partnumber + '/Master/' + Point + '_Master.bmp'
             image = cv.imread(image_path_Master)
             image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
             image = Image.fromarray(image)
-            photo = ImageTk.PhotoImage(image.resize((900, 630)))
+            photo = ImageTk.PhotoImage(image.resize((NGheight, NGweight)))
             image_show = tk.Label(ViewNG, image=photo)
             image_show.image = photo
             image_show.place(x=10, y=100)
@@ -1057,7 +1059,7 @@ class App(customtkinter.CTk):
             imageNG = cv.imread(image_path_NG)
             imageNG = cv.cvtColor(imageNG, cv.COLOR_BGR2RGB)
             imageNG = Image.fromarray(imageNG)
-            photoNG = ImageTk.PhotoImage(imageNG.resize((900, 630)))
+            photoNG = ImageTk.PhotoImage(imageNG.resize((NGheight, NGweight)))
             image_show_NG = tk.Label(ViewNG, image=photoNG)
             image_show_NG.image = photoNG
             image_show_NG.place(x=1000, y=100)
