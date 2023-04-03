@@ -560,6 +560,10 @@ class App(customtkinter.CTk):
     def __init__(self):
         GetEmp.Information()
         super().__init__()
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+        #print("Screen width:", screen_width)
+        #print("Screen height:", screen_height)
         #self.PartNumber_R = self.BatchNumber_R = self.PartName_R = self.CustomerPartNumber_R = self.Packing_R = self.PartNumber_L = self.BatchNumber_L = self.PartName_L = self.CustomerPartNumber_L = self.Packing_L = ""
         self.title('Machine Vision Inspection 1.0.0')
         self.geometry("1920x1020+0+0")
@@ -583,13 +587,15 @@ class App(customtkinter.CTk):
 
         self.Image_logo = GetImage()
         #host = socket.gethostname()
+        Fullscreen_width = 1920
+        Fullscreen_height = 1080
+        self.new_scaling_float = screen_width / Fullscreen_width
+        customtkinter.set_widget_scaling(self.new_scaling_float)
 
-
+        host = IP
+        port = Port
         if Mode == 3:
-            host = IP
-            port = Port  # initiate port no above 1024
             server_socket = socket.socket()  # get instance
-            # look closely. The bind() function takes tuple as argument
             try:
                 server_socket.bind((host, port))  # bind host address and port together
                 server_socket.listen(2)
@@ -597,14 +603,17 @@ class App(customtkinter.CTk):
                 self.Loop = InfiniteTimer(0.1, self.server_program)
                 self.Loop.start()
             except:
-                pass
+                messagebox.showwarning("TCP IP", "Address or Port doesn't match")
         elif Mode == 4:
-            host = socket.gethostname()
-            self.client_socket = socket.socket()
-            self.client_socket.connect((host, Port))
-            self.Ready = False
-            self.Loop = InfiniteTimer(0.1, self.client_program)
-            self.Loop.start()
+            try:
+                host = socket.gethostname()
+                self.client_socket = socket.socket()
+                self.client_socket.connect((host, Port))
+                self.Ready = False
+                self.Loop = InfiniteTimer(0.1, self.client_program)
+                self.Loop.start()
+            except:
+                messagebox.showwarning("TCP IP", "Address or Port doesn't match")
 
         self.Keepdata = ""
 
@@ -618,8 +627,8 @@ class App(customtkinter.CTk):
         self.image_logo.bind("<Enter>", self.on_enter)
         self.image_logo.bind("<Leave>", self.on_leave)
         self.Camera()
-        self.scaling_optionemenu = customtkinter.CTkOptionMenu(master=self, values=["50%", "60%", "70%","80%", "90%", "100%"], command=self.change_scaling_event)
-        self.scaling_optionemenu.place(x=580, y=25)
+        #self.scaling_optionemenu = customtkinter.CTkOptionMenu(master=self, values=["50%", "60%", "70%","80%", "90%", "100%"], command=self.change_scaling_event)
+        #self.scaling_optionemenu.place(x=580, y=25)
         customtkinter.CTkButton(master=self, text="Reorder", text_color="#00B400", hover_color="#B4F0B4", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=("#353535"),
                                 command=lambda: [self.forget(),self.View_Point_Clear(),self.View()]).place(x=1570, y=10)
 
@@ -1438,9 +1447,9 @@ class App(customtkinter.CTk):
         customtkinter.CTkButton(self.Login, text="Login", text_color="#00B400", hover_color="#B4F0B4", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=30, weight="bold"), corner_radius=10, fg_color=("#353535"), command=Search).place(x=40, y=90)
         self.Login.deiconify()
 
-    def change_scaling_event(self,new_scaling: str):
+    """def change_scaling_event(self,new_scaling: str):
         self.new_scaling_float = int(self.scaling_optionemenu.get().replace("%", "")) / 100
-        customtkinter.set_widget_scaling(self.new_scaling_float)
+        customtkinter.set_widget_scaling(self.new_scaling_float)"""
 
 
 if __name__ == "__main__":
