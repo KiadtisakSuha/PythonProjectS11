@@ -98,6 +98,21 @@ class GetAPI:
 
         return status, side, data
 
+class Delete_Data:
+    @staticmethod
+    def Delete_Image():
+        global flag_camera
+        try:
+            os.remove("Current.bmp")
+        except FileNotFoundError:
+            if Quantity_Cam >= 1:
+                frame0.release()
+                if Quantity_Cam >= 2:
+                    frame0.release()
+                    frame1.release()
+            cv.destroyAllWindows()
+            app.destroy()
+            subprocess.call([r'TerminatedProcess.bat'])
 
 class GetImage:
     def __init__(self):
@@ -260,7 +275,7 @@ class Main:
                 return ImageSave, ColorView, Color_Save_Image, Result, Score, Color,top_left
 
     @staticmethod
-    def ViewImage_Snap(Filename,Counter,Left,Top,Right,Bottom,Score,Color,top_left):
+    def ViewImage_Snap(Filename,Counter,Left,Top,Right,Bottom,Score,Color,top_left,new_scaling_float):
             #image = Main.ViewImage_Snap(Filename, self.CouterPoint_Single, self.Point_Left_S, self.Point_Top_S, self.Point_Right_S, self.Point_Bottom_S, Score, ColorView, top_left)
             image = cv.imread(Filename)
             image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
@@ -269,7 +284,9 @@ class Main:
                 cv.rectangle(image, (Left[s] - ROI, Top[s] - ROI), (Right[s] + ROI, Bottom[s] + ROI), Color[s], 2)
                 cv.putText(image, "P:" + str(s + 1) + " S:" + str(Score[s]), (Left[s], Top[s]), cv.FONT_HERSHEY_SIMPLEX, 0.7, Color[s], 2)
             im = Image.fromarray(image)
-            im = im.resize((950, 520))
+            height = int(950*new_scaling_float)
+            weight = int(520*new_scaling_float)
+            im = im.resize((height, weight))
             image = ImageTk.PhotoImage(image=im)
             return image
 
@@ -456,14 +473,14 @@ class Save_Data:
                 else:
                     Point = ""
                 if Result[s] == 1:
-                    cv.imwrite('Record/' + Partnumber +'/OK/Point' + str(s + 1)+'/'+Time + '_P' + Point + str(s + 1) + '.jpg', Image[s])
+                    cv.imwrite('Record/' + Partnumber +'/OK/Point' + str(s + 1)+'/'+Time + '_P' + Point + str(s + 1) + '.jpeg', Image[s])
                 else:
-                    cv.imwrite('Record/' + Partnumber +'/NG/Point' + str(s + 1)+'/'+Time + '_P' + Point + str(s + 1) + '.jpg', Image[s])
+                    cv.imwrite('Record/' + Partnumber +'/NG/Point' + str(s + 1)+'/'+Time + '_P' + Point + str(s + 1) + '.jpeg', Image[s])
 
     @staticmethod
     def Master(Left, Top, Right, Bottom, Score, Point, Emp_ID, Mode, Partnumber):
         Score = int(Score)
-        image = r'Current.png'
+        image = r'Current.bmp'
         Master_Image = CropImage.Crop_Image_Color(image, Left, Top, Right, Bottom)
         try:
             with open(Partnumber + '/' + Partnumber + '.json', 'r') as json_file:
@@ -573,11 +590,14 @@ class App(customtkinter.CTk):
             port = Port  # initiate port no above 1024
             server_socket = socket.socket()  # get instance
             # look closely. The bind() function takes tuple as argument
-            server_socket.bind((host, port))  # bind host address and port together
-            server_socket.listen(2)
-            self.conn, address = server_socket.accept()
-            self.Loop = InfiniteTimer(0.1, self.server_program)
-            self.Loop.start()
+            try:
+                server_socket.bind((host, port))  # bind host address and port together
+                server_socket.listen(2)
+                self.conn, address = server_socket.accept()
+                self.Loop = InfiniteTimer(0.1, self.server_program)
+                self.Loop.start()
+            except:
+                pass
         elif Mode == 4:
             host = socket.gethostname()
             self.client_socket = socket.socket()
@@ -981,7 +1001,7 @@ class App(customtkinter.CTk):
             image_path_NG = 'Record/' + Partnumber + "/NG/" + Point
             for path in os.listdir(image_path_NG):
                 if os.path.isfile(os.path.join(image_path_NG, path)):
-                    if path.endswith('.jpg'):
+                    if path.endswith('.jpeg'):
                         Image_NG.append(path)
             return Image_NG,Point
 
@@ -1039,18 +1059,17 @@ class App(customtkinter.CTk):
         if self.data == "Snap01":#Single
             if self.CouterPoint_Single != 0:
                 self.Run_Single = True
-                Filename = "Current.png"
+                Filename = "Current.bmp"
                 cv.imwrite(Filename, frame0.read()[1])
                 ImageSave, ColorView, Color_Save_Image, Result, Score, Color_Point,top_left = Main.Main(self.PartNumber_S, Filename, self.CouterPoint_Single, self.Point_Mode_S, self.Point_Left_S, self.Point_Top_S, self.Point_Right_S, self.Point_Bottom_S, self.Point_Score_S, self.Point_Color_S)
-                image = Main.ViewImage_Snap(Filename, self.CouterPoint_Single, self.Point_Left_S, self.Point_Top_S, self.Point_Right_S, self.Point_Bottom_S, Score, ColorView, top_left)
+                image = Main.ViewImage_Snap(Filename, self.CouterPoint_Single, self.Point_Left_S, self.Point_Top_S, self.Point_Right_S, self.Point_Bottom_S, Score, ColorView, top_left,self.new_scaling_float)
                 Save_Data.Save_Image(self.PartNumber_S, self.CouterPoint_Single, ImageSave, self.Point_Mode_S, self.Point_Left_S, self.Point_Top_S, self.Point_Right_S, self.Point_Bottom_S, Color_Save_Image, Score, self.Point_Score_S, Result,top_left)
                 Save_Data.Save_Score(self.PartNumber_S, self.BatchNumber_S, self.MachineName, self.CouterPoint_Single, Score, Result)
                 Data = Main.ShowResult(Result)
                 if Data is True:
                     self.message = "OK"
                     self.CouterOK_Single += 1
-
-                    self.OK_S.configure(text="NG : " + str(self.CouterOK_Single))
+                    self.OK_S.configure(text="OK : " + str(self.CouterOK_Single))
                     packing_counter = Packing.Counter_Printer(self.PartNumber_S, self.Packing_S)
                     self.Packing_S_Show.configure(text=str(packing_counter) + "/" + str(self.Packing_S))
                 elif Data is False:
@@ -1060,23 +1079,24 @@ class App(customtkinter.CTk):
                 self.ImageReal_Single.imgtk = image
                 self.ImageReal_Single.configure(image=image)
                 self.View_Point_Single(Color_Point)
-            """elif self.CouterPoint_Single == 0:
-                self.message = "Error"""
+                Delete_Data.Delete_Image()
+            elif self.CouterPoint_Single == 0:
+                self.message = "Error"
 
         elif self.data == "Snap02":#Right
             if self.CouterPoint_Right != 0:
                 self.Run_Right = True
-                Filename = "Current.png"
+                Filename = "Current.bmp"
                 cv.imwrite(Filename, frame1.read()[1])
                 ImageSave, ColorView, Color_Save_Image, Result, Score, Color_Point,top_left = Main.Main(self.PartNumber_R,Filename,self.CouterPoint_Right,self.Point_Mode_R,self.Point_Left_R, self.Point_Top_R, self.Point_Right_R, self.Point_Bottom_R,self.Point_Score_R,self.Point_Color_R)
-                image = Main.ViewImage_Snap(Filename, self.CouterPoint_Right, self.Point_Left_R, self.Point_Top_R, self.Point_Right_R, self.Point_Bottom_R, Score, ColorView,top_left)
+                image = Main.ViewImage_Snap(Filename, self.CouterPoint_Right, self.Point_Left_R, self.Point_Top_R, self.Point_Right_R, self.Point_Bottom_R, Score, ColorView,top_left,self.new_scaling_float)
                 Save_Data.Save_Image(self.PartNumber_R,self.CouterPoint_Right,ImageSave,self.Point_Mode_R,self.Point_Left_R,self.Point_Top_R,self.Point_Right_R,self.Point_Bottom_R,Color_Save_Image,Score,self.Point_Score_R,Result,top_left)
                 Save_Data.Save_Score(self.PartNumber_R, self.BatchNumber_R, self.MachineName,self.CouterPoint_Right,Score,Result)
                 Data = Main.ShowResult(Result)
                 if Data is True:
                     self.message = "OK"
                     self.CouterOK_Right = self.CouterOK_Right + 1
-                    self.OK_R.configure(text="NG : " + str(self.CouterOK_Right))
+                    self.OK_R.configure(text="OK : " + str(self.CouterOK_Right))
                     packing_counter = Packing.Counter_Printer(self.PartNumber_R, self.Packing_R)
                     self.Packing_R_Show.configure(text=str(packing_counter) + "/" + str(self.Packing_R))
                 elif Data is False:
@@ -1086,23 +1106,24 @@ class App(customtkinter.CTk):
                 self.ImageReal_Right.imgtk = image
                 self.ImageReal_Right.configure(image=image)
                 self.View_Point_Right(Color_Point)
+                Delete_Data.Delete_Image()
             elif self.CouterPoint_Right == 0:
                 self.message = "Error"
 
         elif self.data == "Snap03":#Left
             if self.CouterPoint_Left != 0:
                 self.Run_Left = True
-                Filename = "Current.png"
+                Filename = "Current.bmp"
                 cv.imwrite(Filename, frame0.read()[1])
                 ImageSave, ColorView, Color_Save_Image, Result, Score, Color_Point,top_left = Main.Main(self.PartNumber_L, Filename, self.CouterPoint_Left, self.Point_Mode_L, self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L, self.Point_Score_L, self.Point_Color_L)
-                image = Main.ViewImage_Snap(Filename, self.CouterPoint_Left, self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L, Score, ColorView,top_left)
+                image = Main.ViewImage_Snap(Filename, self.CouterPoint_Left, self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L, Score, ColorView,top_left,self.new_scaling_float)
                 Save_Data.Save_Image(self.PartNumber_L, self.CouterPoint_Left, ImageSave, self.Point_Mode_L, self.Point_Left_L, self.Point_Top_L, self.Point_Right_L, self.Point_Bottom_L, Color_Save_Image, Score, self.Point_Score_L, Result,top_left)
                 Save_Data.Save_Score(self.PartNumber_L, self.BatchNumber_L, self.MachineName, self.CouterPoint_Left, Score, Result)
                 Data = Main.ShowResult(Result)
                 if Data is True:
                     self.message = "OK"
                     self.CouterOK_Left = self.CouterOK_Left + 1
-                    self.OK_L.configure(text="NG : " + str(self.CouterOK_Left))
+                    self.OK_L.configure(text="OK : " + str(self.CouterOK_Left))
                     packing_counter = Packing.Counter_Printer(self.PartNumber_L, self.Packing_L)
                     self.Packing_L_Show.configure(text=str(packing_counter) + "/" + str(self.Packing_L))
                 elif Data is False:
@@ -1112,6 +1133,7 @@ class App(customtkinter.CTk):
                 self.ImageReal_Left.imgtk = image
                 self.ImageReal_Left.configure(image=image)
                 self.View_Point_Left(Color_Point)
+                Delete_Data.Delete_Image()
             elif self.CouterPoint_Left == 0:
                 self.message = "Error"
 
@@ -1202,10 +1224,6 @@ class App(customtkinter.CTk):
             elif Quantity_Cam == 2:
                 frame0.release()
                 frame1.release()
-            elif Quantity_Cam == 3:
-                frame0.release()
-                frame1.release()
-                frame2.release()
             cv.destroyAllWindows()
             app.destroy()
             subprocess.call([r'TerminatedProcess.bat'])
@@ -1320,7 +1338,7 @@ class App(customtkinter.CTk):
                         elif Side.get() == 2:
                             Partnumber = self.PartNumber_L
                             Imagesave = Image.fromarray(self.Camera_1)
-                        Imagesave.save("Current.png")
+                        Imagesave.save("Current.bmp")
                         Create = Partnumber + '/Master'
                         if not os.path.exists(Create):
                             os.makedirs(Create)
@@ -1359,7 +1377,7 @@ class App(customtkinter.CTk):
                                     if Left and Top and Right and Bottom != 0:
                                         Save_Data.Master(Left, Top, Right, Bottom, Score, Point, Emp_ID, Mode, Partnumber)
 
-                        path = r'Current.png'
+                        path = r'Current.bmp'
                         image = cv.imread(path)
                         clone = image.copy()
                         cv.namedWindow(Point)
@@ -1423,9 +1441,6 @@ class App(customtkinter.CTk):
     def change_scaling_event(self,new_scaling: str):
         self.new_scaling_float = int(self.scaling_optionemenu.get().replace("%", "")) / 100
         customtkinter.set_widget_scaling(self.new_scaling_float)
-
-
-
 
 
 if __name__ == "__main__":
