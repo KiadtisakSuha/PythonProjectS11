@@ -17,6 +17,7 @@ from tkinter import messagebox
 import customtkinter
 import socket
 import subprocess
+import sys
 
 """self.ImageReal_Left = customtkinter.CTkButton(master = self, bg="White", command=lambda: self.ViewImagePart(self.PartNumber_L))
             self.ImageReal_Right = customtkinter.CTkButton(master = self, bg="White", command=lambda: self.ViewImagePart(self.PartNumber_R))
@@ -40,12 +41,12 @@ Mode = Setting_Paramiter[0]["Mode"]
 Port = Setting_Paramiter[0]["Port"]
 IP = Setting_Paramiter[0]["IP"]
 if Quantity_Cam == 1:
-    frame0 = cv.VideoCapture(0, cv.CAP_DSHOW)
+    frame0 = cv.VideoCapture(1, cv.CAP_DSHOW)
     frame0.set(cv.CAP_PROP_FRAME_WIDTH, 1024)
     frame0.set(cv.CAP_PROP_FRAME_HEIGHT, 768)
 elif Quantity_Cam == 2:
-    frame0 = cv.VideoCapture(0, cv.CAP_DSHOW)
-    frame1 = cv.VideoCapture(1, cv.CAP_DSHOW)
+    frame0 = cv.VideoCapture(1, cv.CAP_DSHOW)
+    frame1 = cv.VideoCapture(0, cv.CAP_DSHOW)
     frame0.set(cv.CAP_PROP_FRAME_WIDTH, 1024)
     frame0.set(cv.CAP_PROP_FRAME_HEIGHT, 768)
     frame1.set(cv.CAP_PROP_FRAME_WIDTH, 1024)
@@ -239,10 +240,10 @@ class Main:
                     Master_Image = CropImage.Crop_find(FileImage,Left[x],Top[x],Right[x],Bottom[x],top_left,bottom_right,scale,Mode[x])
                     #Master_Image = CropImage.Crop_Image(FileImage, Left[x], Top[x], Right[x], Bottom[x], Mode[x])
                     if scale == 1 and (val * 1000) >= Score_Set[x]:
+                        Template_Image = cv.imread(Template, 0)
+                        Score_Area_Data = Shape.Process_Area(Shape.Rule_Of_Thirds(Master_Image), Shape.Rule_Of_Thirds(Template_Image))
+                        Score.append(Score_Area_Data)
                         if Mode[x] == "Shape":
-                            Template_Image = cv.imread(Template, 0)
-                            Score_Area_Data = Shape.Process_Area(Shape.Rule_Of_Thirds(Master_Image), Shape.Rule_Of_Thirds(Template_Image))
-                            Score.append(Score_Area_Data)
                             if Score_Area_Data >= Score_Set[x]:
                                 ColorView.append((0, 255, 0))
                                 Color.append("#00B400")
@@ -269,7 +270,7 @@ class Main:
                     else:
                         ColorView.append((255, 0, 0))
                         Color.append("#B40000")
-                        Score.append(0)
+                        Score.append(int(val * 1000))
                         Result.append(0)
                         Color_Save_Image.append((0, 0, 255))
                 return ImageSave, ColorView, Color_Save_Image, Result, Score, Color,top_left
@@ -308,6 +309,7 @@ class Shape:
         swapped = False
         Couter = len(Master)
         for i in range(Couter):
+            print(Master[i], Template[i])
             if Master[i] < Template[i]:
                 Score_Ture.append((Master[i] / Template[i]) * 1000)
             else:
@@ -318,9 +320,9 @@ class Shape:
                     swapped = True
                     Score_Ture[i], Score_Ture[i + 1] = Score_Ture[i + 1], Score_Ture[i]
         for i in range(len(Score_Ture)):
-            if i < 5:
+            if i < 2:
                 Result_Score += Score_Ture[i]
-        Result_Score = int(Result_Score / 5)
+        Result_Score = int(Result_Score / 2)
         return Result_Score
 
     @staticmethod
@@ -1005,6 +1007,7 @@ class App(customtkinter.CTk):
         def Destory():
             ViewNG.destroy()
 
+
         def ReadImageNG():
             Image_NG = []
             Point = PointNG_value.get()
@@ -1235,9 +1238,13 @@ class App(customtkinter.CTk):
             elif Quantity_Cam == 2:
                 frame0.release()
                 frame1.release()
+            self.conn.close()
             cv.destroyAllWindows()
             app.destroy()
-            subprocess.call([r'TerminatedProcess.bat'])
+
+
+            #sys.exit()
+            #subprocess.call([r'TerminatedProcess.bat'])
 
     def Camera(self):
             self.Camera_1 = cv.cvtColor(frame0.read()[1], cv.COLOR_BGR2RGB)
