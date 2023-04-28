@@ -282,8 +282,8 @@ class Main:
             image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
             for s in range(Counter):
                 cv.rectangle(image, (Left[s]+ top_left[0] - ROI, Top[s]+ top_left[1] - ROI), (Right[s]+ top_left[0] - ROI, Bottom[s]+ top_left[1] - ROI), Color[s], 2)
-                cv.rectangle(image, (Left[s] - ROI, Top[s] - ROI), (Right[s] + ROI, Bottom[s] + ROI), Color[s], 2)
-                cv.putText(image, "P:" + str(s + 1) + " S:" + str(Score[s]), (Left[s], Top[s]), cv.FONT_HERSHEY_SIMPLEX, 0.7, Color[s], 2)
+                #cv.rectangle(image, (Left[s] - ROI, Top[s] - ROI), (Right[s] + ROI, Bottom[s] + ROI), Color[s], 2)
+                #cv.putText(image, "P" + str(s + 1) +','+ str(Score[s]), (Left[s], Top[s]), cv.FONT_HERSHEY_SIMPLEX, 0.7, Color[s], 2)
             im = Image.fromarray(image)
             height = int(950*new_scaling_float)
             weight = int(520*new_scaling_float)
