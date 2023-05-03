@@ -283,7 +283,7 @@ class Main:
             for s in range(Counter):
                 cv.rectangle(image, (Left[s]+ top_left[0] - ROI, Top[s]+ top_left[1] - ROI), (Right[s]+ top_left[0] - ROI, Bottom[s]+ top_left[1] - ROI), Color[s], 2)
                 #cv.rectangle(image, (Left[s] - ROI, Top[s] - ROI), (Right[s] + ROI, Bottom[s] + ROI), Color[s], 2)
-                #cv.putText(image, "P" + str(s + 1) +','+ str(Score[s]), (Left[s], Top[s]), cv.FONT_HERSHEY_SIMPLEX, 0.7, Color[s], 2)
+                cv.putText(image,str(s + 1), (Left[s]+ top_left[0] - ROI, Top[s]+ top_left[1] - ROI), cv.FONT_HERSHEY_SIMPLEX, 0.7, Color[s], 2)
             im = Image.fromarray(image)
             height = int(950*new_scaling_float)
             weight = int(520*new_scaling_float)
@@ -572,6 +572,11 @@ class App(customtkinter.CTk):
         # self.state('zoomed')
         self.attributes('-fullscreen', True)
         self.MachineName = Machine
+
+        self.Comfrim_left = 0
+        self.Comfrim_rigth = 0
+        self.Comfrim_single = 0
+
         self.CouterPoint_Single = 0
         self.CouterPoint_Left = 0
         self.CouterPoint_Right = 0
@@ -596,6 +601,7 @@ class App(customtkinter.CTk):
 
         host = IP
         port = Port
+
         if Mode == 3:
             server_socket = socket.socket()  # get instance
             try:
@@ -741,6 +747,7 @@ class App(customtkinter.CTk):
             self.Packing_R_Lable.place(x=1360, y=100)
             self.Packing_R_Show = customtkinter.CTkLabel(master=self, text=str(self.CouterPacking_Right) + "/" + str(self.Packing_R), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=25, weight="bold"), corner_radius=10, fg_color=("#00B400"))
             self.Packing_R_Show.place(x=1490, y=100)
+
 
         elif len(self.API[1]) == 1:#
             if self.API[1][0] == "Right":
@@ -941,33 +948,36 @@ class App(customtkinter.CTk):
     def View_Point_Clear(self):
         self.Frame_Point = customtkinter.CTkFrame(master=self, width=1980, height=270).place(x=0, y=810)
     def View_Point_Left(self,color):
-        #self.Frame_Point = customtkinter.CTkFrame(master=self, width=1980, height=270).place(x=0, y=810)
+        customtkinter.CTkLabel(master=self.Frame_Point, text="POINT CHECK", text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=20, weight="bold"), corner_radius=10).place(x=0, y=810)
         if self.PartNumber_L != "":
             for Point_Left in range(self.CouterPoint_Left):
                 if Point_Left <= 4:
-                    customtkinter.CTkLabel(master=self.Frame_Point, text="Point:" + str(Point_Left + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color[Point_Left])).place(x=190 * (Point_Left), y=850)
+                    customtkinter.CTkLabel(master=self.Frame_Point, text=str(Point_Left + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=35, weight="bold"), corner_radius=10, fg_color=(color[Point_Left]),width=150,height=50).place(x=190 * (Point_Left), y=850)
                 elif Point_Left <= 9:
-                    customtkinter.CTkLabel(master=self.Frame_Point, text="Point:" + str(Point_Left + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color[Point_Left])).place(x=190 * (Point_Left - 5), y=930)
+                    customtkinter.CTkLabel(master=self.Frame_Point, text=str(Point_Left + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=35, weight="bold"), corner_radius=10, fg_color=(color[Point_Left]),width=150,height=50).place(x=190 * (Point_Left - 5), y=930)
                 elif Point_Left <= 15:
-                    customtkinter.CTkLabel(master=self.Frame_Point, text="Point:" + str(Point_Left + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color[Point_Left])).place(x=190 * (Point_Left - 10), y=1010)
+                    customtkinter.CTkLabel(master=self.Frame_Point, text=str(Point_Left + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=35, weight="bold"), corner_radius=10, fg_color=(color[Point_Left]),width=150,height=50).place(x=190 * (Point_Left - 10), y=1010)
     def View_Point_Right(self, color):
+        customtkinter.CTkLabel(master=self.Frame_Point, text="POINT CHECK", text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=20, weight="bold"), corner_radius=10).place(x=960, y=810)
         if self.PartNumber_R != "":
             for Point_Right in range(self.CouterPoint_Right):
                 if Point_Right <= 4:
-                    customtkinter.CTkLabel(master=self.Frame_Point, text="Point:" + str(Point_Right + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color[Point_Right])).place(x=960 + (Point_Right * 190), y=850)
+                    customtkinter.CTkLabel(master=self.Frame_Point, text=str(Point_Right + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=35, weight="bold"), corner_radius=10, fg_color=(color[Point_Right]),width=150,height=50).place(x=960 + (Point_Right * 190), y=850)
                 elif Point_Right <= 9:
-                    customtkinter.CTkLabel(master=self.Frame_Point, text="Point:" + str(Point_Right + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color[Point_Right])).place(x=960 + ((Point_Right - 5) * 190), y=930)
+                    customtkinter.CTkLabel(master=self.Frame_Point, text=str(Point_Right + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=35, weight="bold"), corner_radius=10, fg_color=(color[Point_Right]),width=150,height=50).place(x=960 + ((Point_Right - 5) * 190), y=930)
                 elif Point_Right <= 15:
-                    customtkinter.CTkLabel(master=self.Frame_Point, text="Point:" + str(Point_Right + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color[Point_Right])).place(x=960 + ((Point_Right - 10) * 190), y=1010)
+                    customtkinter.CTkLabel(master=self.Frame_Point, text=str(Point_Right + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=35, weight="bold"), corner_radius=10, fg_color=(color[Point_Right]),width=150,height=50).place(x=960 + ((Point_Right - 10) * 190), y=1010)
     def View_Point_Single(self,color):
-       if self.PartNumber_S != "":
-            for Point_Single in range(self.CouterPoint_Single):
+        customtkinter.CTkLabel(master=self.Frame_Point, text="POINT CHECK", text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=20, weight="bold"), corner_radius=10).place(x=450, y=810)
+        if self.PartNumber_S != "":
+           for Point_Single in range(self.CouterPoint_Single):
+
                 if Point_Single <= 4:
-                    customtkinter.CTkLabel(master=self.Frame_Point, text="Point:" + str(Point_Single + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color[Point_Single])).place(x=450 + (Point_Single * 190), y=850)
+                    customtkinter.CTkLabel(master=self.Frame_Point, text=str(Point_Single + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=35, weight="bold"), corner_radius=10, fg_color=(color[Point_Single]),width=150,height=50).place(x=450 + (Point_Single * 190), y=850)
                 elif Point_Single <= 9:
-                    customtkinter.CTkLabel(master=self.Frame_Point, text="Point:" + str(Point_Single + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color[Point_Single])).place(x=450 + ((Point_Single - 5) * 190), y=930)
+                    customtkinter.CTkLabel(master=self.Frame_Point, text=str(Point_Single + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=35, weight="bold"), corner_radius=10, fg_color=(color[Point_Single]),width=150,height=50).place(x=450 + ((Point_Single - 5) * 190), y=930)
                 elif Point_Single <= 15:
-                    customtkinter.CTkLabel(master=self.Frame_Point, text="Point:" + str(Point_Single + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color=(color[Point_Single])).place(x=450 + ((Point_Single - 10) * 190), y=1010)
+                    customtkinter.CTkLabel(master=self.Frame_Point, text=str(Point_Single + 1), text_color="#FFFFFF", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=35, weight="bold"), corner_radius=10, fg_color=(color[Point_Single]),width=150,height=50).place(x=450 + ((Point_Single - 10) * 190), y=1010)
 
     def ViewNG(self, Side, Partnumber):
         NGheight = int(900 * self.new_scaling_float)
@@ -1006,7 +1016,6 @@ class App(customtkinter.CTk):
 
         def Destory():
             ViewNG.destroy()
-
 
         def ReadImageNG():
             Image_NG = []
@@ -1082,14 +1091,17 @@ class App(customtkinter.CTk):
                 Data = Main.ShowResult(Result)
                 if Data is True:
                     self.message = "OK"
+                    self.Comfrim_single = 0
                     self.CouterOK_Single += 1
                     self.OK_S.configure(text="OK : " + str(self.CouterOK_Single))
                     packing_counter = Packing.Counter_Printer(self.PartNumber_S, self.Packing_S)
                     self.Packing_S_Show.configure(text=str(packing_counter) + "/" + str(self.Packing_S))
                 elif Data is False:
                     self.message = "NG"
-                    self.CouterNG_Single = self.CouterNG_Single + 1
-                    self.NG_S.configure(text="NG : " + str(self.CouterNG_Single))
+                    self.Comfrim_single += 1
+                    if self.Comfrim_single >= 4:
+                        self.CouterNG_Single = self.CouterNG_Single + 1
+                        self.NG_S.configure(text="NG : " + str(self.CouterNG_Single))
                 self.ImageReal_Single.imgtk = image
                 self.ImageReal_Single.configure(image=image)
                 self.View_Point_Single(Color_Point)
@@ -1109,14 +1121,17 @@ class App(customtkinter.CTk):
                 Data = Main.ShowResult(Result)
                 if Data is True:
                     self.message = "OK"
+                    self.Comfrim_rigth = 0
                     self.CouterOK_Right = self.CouterOK_Right + 1
                     self.OK_R.configure(text="OK : " + str(self.CouterOK_Right))
                     packing_counter = Packing.Counter_Printer(self.PartNumber_R, self.Packing_R)
                     self.Packing_R_Show.configure(text=str(packing_counter) + "/" + str(self.Packing_R))
                 elif Data is False:
                     self.message = "NG"
-                    self.CouterNG_Right = self.CouterNG_Right + 1
-                    self.NG_R.configure(text="NG : " + str(self.CouterNG_Right))
+                    self.Comfrim_rigth += 1
+                    if self.Comfrim_rigth >= 4:
+                        self.CouterNG_Right = self.CouterNG_Right + 1
+                        self.NG_R.configure(text="NG : " + str(self.CouterNG_Right))
                 self.ImageReal_Right.imgtk = image
                 self.ImageReal_Right.configure(image=image)
                 self.View_Point_Right(Color_Point)
@@ -1136,14 +1151,17 @@ class App(customtkinter.CTk):
                 Data = Main.ShowResult(Result)
                 if Data is True:
                     self.message = "OK"
+                    self.Comfrim_left = 0
                     self.CouterOK_Left = self.CouterOK_Left + 1
                     self.OK_L.configure(text="OK : " + str(self.CouterOK_Left))
                     packing_counter = Packing.Counter_Printer(self.PartNumber_L, self.Packing_L)
                     self.Packing_L_Show.configure(text=str(packing_counter) + "/" + str(self.Packing_L))
                 elif Data is False:
                     self.message = "NG"
-                    self.CouterNG_Left = self.CouterNG_Left + 1
-                    self.NG_L.configure(text="NG : " + str(self.CouterNG_Left))
+                    self.Comfrim_left += 1
+                    if self.Comfrim_left >= 4:
+                        self.CouterNG_Left = self.CouterNG_Left + 1
+                        self.NG_L.configure(text="NG : " + str(self.CouterNG_Left))
                 self.ImageReal_Left.imgtk = image
                 self.ImageReal_Left.configure(image=image)
                 self.View_Point_Left(Color_Point)
@@ -1238,7 +1256,7 @@ class App(customtkinter.CTk):
             elif Quantity_Cam == 2:
                 frame0.release()
                 frame1.release()
-            self.conn.close()
+            #self.conn.close()
             cv.destroyAllWindows()
             app.destroy()
 
