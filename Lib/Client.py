@@ -39,6 +39,7 @@ class App(tk.Tk):
         self.Received.place(x=280,y=10)
         self.client_socket = socket.socket()
         self.client_socket.connect((host, port))
+
     def client_program(self):
         self.client_socket.send(self.Data.get().encode())
         self.xxx = self.client_socket.recv(1024).decode()
