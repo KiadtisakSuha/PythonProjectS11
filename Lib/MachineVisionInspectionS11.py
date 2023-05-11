@@ -613,10 +613,12 @@ class App(customtkinter.CTk):
         self.AddMaster()
 
         customtkinter.CTkLabel(master=self, text="Vision Inspection", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=50, weight="bold"), corner_radius=10).place(x=140, y=10)
-        customtkinter.CTkButton(master=self, text="Connect Robot", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color="#353535", hover_color="#B4F0B4", command=lambda: self.connect()).place(x=970, y=10)
+        self.Communication = customtkinter.CTkButton(master=self, text="Connect Robot", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=40, weight="bold"), corner_radius=10, fg_color="#353535", hover_color="#B4F0B4", command=lambda: [self.connecting()])
+        self.Communication.place(x=970, y=10)
         customtkinter.CTkLabel(master=self, text="v 1.0.0", text_color="#00B400", font=customtkinter.CTkFont(family="Microsoft PhagsPa", size=15, weight="bold"), corner_radius=10).place(x=490, y=10)
         self.image_logo = customtkinter.CTkButton(master=self, image=self.Image_logo.BKFImage, command=self.Destory, text="", fg_color="#353535", hover_color="#353535")
         self.image_logo.place(x=1755, y=10)
+
         self.image_logo.bind("<Enter>", self.on_enter)
         self.image_logo.bind("<Leave>", self.on_leave)
         self.Camera()
@@ -635,13 +637,19 @@ class App(customtkinter.CTk):
                 try:
                     server_socket.bind((host, port))
                 except:
-                    messagebox.showwarning("Communication", "The address or port does not match. !!!")
+                    messagebox.showwarning("Communication Error !!", "The address or port does not match. !!!")
+                    self.Communication.configure(text="Connect Robot")
+                    self.Communication.place(x=970)
                 server_socket.listen(2)
                 self.conn, address = server_socket.accept()
                 self.Loop = InfiniteTimer(0.1, self.server_program)
                 self.Loop.start()
+                self.Communication.configure(text="Connected")
+                self.Communication.place(x=1050)
             except socket.timeout:
-                messagebox.showwarning("Communication", "The communication robot timed out 60 seconds. !!!")
+                messagebox.showwarning("Communication Error !!", "The communication with Robot time out 60 seconds")
+                self.Communication.configure(text="Connect Robot")
+                self.Communication.place(x=970)
             finally:
                 server_socket.close()
         elif Mode == 4:
@@ -653,7 +661,14 @@ class App(customtkinter.CTk):
                 self.Loop = InfiniteTimer(0.1, self.client_program)
                 self.Loop.start()
             except:
-                messagebox.showwarning("TCP IP", "Address or Port doesn't match")
+                messagebox.showwarning("Communication Error !!", "The address or port does not match. !!!")
+
+    def connecting(self):
+        self.Communication.configure(text="Connecting...")
+        self.Communication.place(x=1010)
+        timer = Timer(0.5, self.connect,args=())
+        timer.start()
+
 
     def View(self):
         self.API = GetAPI.API()
